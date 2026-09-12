@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#151B4D" />
+  <title>AI領航青年數位工具補助｜Demo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <div class="app-shell">
+    <header class="topbar">
+      <div class="brand">
+        <div class="brand-mark">🧭</div>
+        <div>
+          <div class="brand-title">AI領航青年數位工具補助</div>
+          <div class="brand-subtitle">新竹市青年發展中心｜LINE LIFF Demo</div>
+        </div>
+      </div>
+      <div class="line-pill">LINE 串聯</div>
+    </header>
+
+    <main class="main">
+      <section class="hero">
+        <div class="hero-orb hero-orb-1"></div>
+        <div class="hero-orb hero-orb-2"></div>
+        <div class="hero-content">
+          <div class="eyebrow">竹青 AI PASS</div>
+          <h1>懂資安，再出發。</h1>
+          <p>從資安認知、補助申請到撥款追蹤，一站完成。</p>
+          <div class="hero-badges">
+            <span>🛡️ AI資安檢核</span>
+            <span>💬 LINE進度通知</span>
+            <span>⚡ 智慧文件檢核</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="progress-card">
+        <div class="stepper" id="stepper">
+          <div class="step active" data-step="1">
+            <span class="step-dot">1</span>
+            <span class="step-label">資安宣導</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" data-step="2">
+            <span class="step-dot">2</span>
+            <span class="step-label">安全檢核</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" data-step="3">
+            <span class="step-dot">3</span>
+            <span class="step-label">補助申請</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" data-step="4">
+            <span class="step-dot">4</span>
+            <span class="step-label">完成追蹤</span>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 1 -->
+      <section class="panel step-panel active" id="panel-1">
+        <div class="panel-header">
+          <div>
+            <div class="section-kicker">STEP 01</div>
+            <h2>先花 20 秒，保護你的資料</h2>
+            <p>資安宣導影片播放完成後，才能繼續申請。</p>
+          </div>
+          <div class="shield-icon">🛡️</div>
+        </div>
+
+        <div class="video-card">
+          <div class="video-frame" id="videoFrame">
+            <video id="awarenessVideo" playsinline preload="metadata" controls>
+              <source src="./assets/security-awareness.mp4" type="video/mp4">
+            </video>
+
+            <div class="video-placeholder" id="videoPlaceholder">
+              <div class="placeholder-mascot">🧭</div>
+              <div class="placeholder-title">AI 資安宣導影片</div>
+              <div class="placeholder-copy">請把你們的影片命名為<br><strong>security-awareness.mp4</strong><br>放進 assets 資料夾</div>
+              <button class="ghost-btn" id="demoPlayBtn" type="button">沒有影片？使用 20 秒 Demo 計時</button>
+            </div>
+          </div>
+
+          <div class="watch-status">
+            <div class="watch-copy">
+              <span id="watchLabel">尚未完成觀看</span>
+              <strong id="watchTimer">00 / 20 秒</strong>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill" id="watchProgress"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="info-callout">
+          <span>💡</span>
+          <div>
+            <strong>為什麼要先看？</strong>
+            <p>補助不只是教你用 AI，也希望你在使用前先辨識個資、機密與著作權風險。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 2 -->
+      <section class="panel step-panel" id="panel-2">
+        <div class="panel-header">
+          <div>
+            <div class="section-kicker">STEP 02</div>
+            <h2>AI 安全三問</h2>
+            <p>完成三項檢核後，即可進入申請流程。</p>
+          </div>
+          <div class="shield-icon">✓</div>
+        </div>
+
+        <div class="check-list">
+          <label class="check-card">
+            <input type="checkbox" class="security-check" />
+            <span class="check-box">✓</span>
+            <span>
+              <strong>資料安全</strong>
+              <small>我不會上傳個資、機密或未公開資訊至未經授權的公開生成式 AI。</small>
+            </span>
+          </label>
+
+          <label class="check-card">
+            <input type="checkbox" class="security-check" />
+            <span class="check-box">✓</span>
+            <span>
+              <strong>工具可信</strong>
+              <small>我會確認 AI 工具來源、隱私政策與資料是否可能被保存或用於模型訓練。</small>
+            </span>
+          </label>
+
+          <label class="check-card">
+            <input type="checkbox" class="security-check" />
+            <span class="check-box">✓</span>
+            <span>
+              <strong>合法使用</strong>
+              <small>我會確認 AI 生成內容是否涉及著作權、肖像、商標或其他授權限制。</small>
+            </span>
+          </label>
+        </div>
+
+        <div class="security-result" id="securityResult">
+          <div class="result-icon">🛡️</div>
+          <div>
+            <span>AI 安全檢核</span>
+            <strong>尚未完成</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 3 -->
+      <section class="panel step-panel" id="panel-3">
+        <div class="panel-header">
+          <div>
+            <div class="section-kicker">STEP 03</div>
+            <h2>青年數位工具補助申請</h2>
+            <p>幾分鐘完成，後續審核進度將透過 LINE 通知。</p>
+          </div>
+          <div class="line-login">✓ 已透過 LINE 登入</div>
+        </div>
+
+        <div class="form-section">
+          <h3>基本資料</h3>
+          <div class="form-grid">
+            <label class="field">
+              <span>姓名</span>
+              <input id="nameInput" type="text" placeholder="請輸入姓名" autocomplete="name">
+            </label>
+            <label class="field">
+              <span>聯絡電話</span>
+              <input id="phoneInput" type="tel" placeholder="09XX XXX XXX" autocomplete="tel">
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>補助資格</h3>
+          <div class="qualification-grid">
+            <label class="qual-card active">
+              <input type="radio" name="qualification" value="general" checked>
+              <div class="qual-top">
+                <span class="radio-ui"></span>
+                <strong>一般青年</strong>
+              </div>
+              <div class="qual-value">補助 50%</div>
+              <small>每人最高 NT$3,000</small>
+            </label>
+
+            <label class="qual-card">
+              <input type="radio" name="qualification" value="lowincome">
+              <div class="qual-top">
+                <span class="radio-ui"></span>
+                <strong>低收／中低收入戶</strong>
+              </div>
+              <div class="qual-value">補助 90%</div>
+              <small>每人最高 NT$6,000</small>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>工具與金額</h3>
+          <div class="form-grid">
+            <label class="field">
+              <span>工具名稱</span>
+              <input id="toolInput" type="text" placeholder="例：Adobe Creative Cloud">
+            </label>
+            <label class="field">
+              <span>購買金額（NT$）</span>
+              <input id="amountInput" type="number" min="0" step="100" placeholder="4000">
+            </label>
+          </div>
+
+          <div class="estimate-card">
+            <div>
+              <span>預估補助</span>
+              <small id="estimateRule">一般青年｜50%，最高 NT$3,000</small>
+            </div>
+            <strong id="estimateAmount">NT$0</strong>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>智慧文件檢核</h3>
+          <p class="section-note">Demo 模擬：點擊項目即可切換檢核狀態。</p>
+
+          <div class="document-list">
+            <button class="document-item ok" type="button" data-state="ok">
+              <span class="doc-icon">🪪</span>
+              <span class="doc-copy">
+                <strong>身分證明</strong>
+                <small>已辨識姓名與基本資格</small>
+              </span>
+              <span class="doc-status">✓ 已通過</span>
+            </button>
+
+            <button class="document-item ok" type="button" data-state="ok">
+              <span class="doc-icon">🧾</span>
+              <span class="doc-copy">
+                <strong>購買憑證</strong>
+                <small>金額、日期與品項格式正常</small>
+              </span>
+              <span class="doc-status">✓ 已通過</span>
+            </button>
+
+            <button class="document-item warning" type="button" data-state="warning">
+              <span class="doc-icon">🏦</span>
+              <span class="doc-copy">
+                <strong>帳戶資料</strong>
+                <small>尚未完成檢核</small>
+              </span>
+              <span class="doc-status">⚠ 待確認</span>
+            </button>
+          </div>
+
+          <div class="ai-note">
+            <span>⚡</span>
+            <p><strong>智慧初檢：</strong>系統可先協助辨識缺件、格式與關鍵欄位，再交由承辦人員進行正式審核。</p>
+          </div>
+        </div>
+      </section>
+
+      <!-- STEP 4 -->
+      <section class="panel step-panel" id="panel-4">
+        <div class="success-wrap">
+          <div class="success-icon">✓</div>
+          <div class="section-kicker">申請完成</div>
+          <h2>申請已成功送出！</h2>
+          <p>我們會透過 LINE 主動通知審核、補件、核銷與撥款進度。</p>
+
+          <div class="case-card">
+            <span>案件編號</span>
+            <strong id="caseNumber">HC-AI-000000</strong>
+            <button id="copyCaseBtn" class="text-btn" type="button">複製</button>
+          </div>
+
+          <div class="timeline-card">
+            <h3>目前進度</h3>
+            <div class="timeline">
+              <div class="timeline-row done">
+                <span class="timeline-dot">✓</span>
+                <div>
+                  <strong>申請已送出</strong>
+                  <small>系統已完成基本資料收件</small>
+                </div>
+              </div>
+              <div class="timeline-row active">
+                <span class="timeline-dot"></span>
+                <div>
+                  <strong>資料審核中</strong>
+                  <small>預計由承辦人進行正式資格與文件審核</small>
+                </div>
+              </div>
+              <div class="timeline-row">
+                <span class="timeline-dot"></span>
+                <div>
+                  <strong>核銷確認</strong>
+                  <small>審核完成後進入核銷流程</small>
+                </div>
+              </div>
+              <div class="timeline-row">
+                <span class="timeline-dot"></span>
+                <div>
+                  <strong>補助撥款</strong>
+                  <small>完成後將由 LINE 發送通知</small>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="line-notice">
+            <span class="line-bubble">LINE</span>
+            <div>
+              <strong>不用一直回來查</strong>
+              <p>狀態有更新時，由 @youthhsinchu 主動通知你。</p>
+            </div>
+          </div>
+
+          <button class="secondary-btn" id="restartBtn" type="button">重新體驗 Demo</button>
+        </div>
+      </section>
+    </main>
+
+    <footer class="sticky-footer">
+      <div class="footer-inner">
+        <div class="footer-status">
+          <span id="footerStatus">完成資安宣導後即可繼續</span>
+        </div>
+        <button class="primary-btn" id="nextBtn" type="button" disabled>
+          <span id="nextBtnText">繼續申請</span>
+          <span>→</span>
+        </button>
+      </div>
+    </footer>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <script src="./app.js"></script>
+</body>
+</html>
