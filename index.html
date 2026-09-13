@@ -8,6 +8,7 @@
   <title>竹青｜你的數位冒險，從這裡開始</title>
   <link rel="stylesheet" href="./home.css">
   <script src="./home.js" defer></script>
+  <script src="./particles.js" defer></script>
 </head>
 <body>
   <a class="skip-link" href="./subsidy/">直接前往 AI 領航青年數位工具補助</a>
@@ -18,10 +19,13 @@
   <main id="main">
     <section class="hero" aria-labelledby="hero-title">
       <div class="world" aria-hidden="true">
-        <img class="room" src="./assets/hacker-room.png" alt="" width="1280" height="720" fetchpriority="high">
+        <img class="room" src="./assets/mascot-room.png" alt="" width="1280" height="720" fetchpriority="high">
+        <img class="typing-frame" src="./assets/mascot-typing.png" alt="" width="1280" height="720" decoding="async">
+        <span class="typing-key key-left"></span><span class="typing-key key-right"></span>
         <div class="art-title-mask"></div><div class="room-shade"></div>
         <span class="server-light light-one"></span><span class="server-light light-two"></span>
       </div>
+      <canvas id="tech-particles" aria-hidden="true"></canvas>
       <div class="hero-copy">
         <p class="eyebrow"><span></span> HSINCHU YOUTH × DIGITAL FUTURE</p>
         <h1 id="hero-title">竹青<span class="title-dot">.</span></h1>
@@ -35,7 +39,7 @@
     </section>
     <div class="portal-backdrop" id="portal-backdrop" hidden></div>
     <section class="terminal" id="services" aria-labelledby="services-title">
-      <div class="terminal-bar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>竹青 / 服務選單</span><button id="close" class="close-button" aria-label="關閉選單，返回駭客貓首頁" hidden>✕</button></div>
+      <div class="terminal-bar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>竹青 / 服務選單</span><button id="close" class="close-button" aria-label="關閉選單，返回吉祥物首頁" hidden>✕</button></div>
       <div class="terminal-content">
         <p class="terminal-kicker">ZHUQING DIGITAL DESKTOP</p>
         <h2 id="services-title" tabindex="-1">你好，探索者<span>_</span></h2>
