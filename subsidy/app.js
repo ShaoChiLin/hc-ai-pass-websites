@@ -36,6 +36,11 @@ const nameInput = document.getElementById("nameInput");
 const phoneInput = document.getElementById("phoneInput");
 const toolInput = document.getElementById("toolInput");
 
+const apiDot = document.getElementById("apiDot");
+const apiStatus = document.getElementById("apiStatus");
+const apiConfigBtn = document.getElementById("apiConfigBtn");
+const offlineNotice = document.getElementById("offlineNotice");
+
 const caseNumber = document.getElementById("caseNumber");
 const copyCaseBtn = document.getElementById("copyCaseBtn");
 const restartBtn = document.getElementById("restartBtn");
@@ -129,6 +134,81 @@ function goToStep(step) {
   updateFooter();
 }
 
+/* ---------------------------------------------------------------------------
+ * 收件伺服器
+ *
+ * 這一頁是 GitHub Pages 上的靜態頁，收件的 Express 跑在承辦端的電腦上、透過 ngrok
+ * 對外。ngrok 每次重開網址都會變，所以位址不能寫死：用 ?api=https://xxx.ngrok-free.app
+ * 帶進來，存進 localStorage，之後回訪就不必再帶一次。
+ * ------------------------------------------------------------------------- */
+
+const API_STORAGE_KEY = "hc-ai-pass.apiBase";
+
+/** 去掉結尾斜線，並擋掉明顯不是 http(s) 的輸入。回傳 "" 代表沒有可用位址。 */
+function normalizeApiBase(value) {
+  const base = String(value ?? "").trim().replace(/\/+$/, "");
+  return /^https?:\/\/.+/.test(base) ? base : "";
+}
+
+function readApiBase() {
+  try {
+    return normalizeApiBase(localStorage.getItem(API_STORAGE_KEY));
+  } catch {
+    // 無痕模式可能讀不到 localStorage。這時只是回到離線模式，不該讓整頁壞掉。
+    return "";
+  }
+}
+
+function saveApiBase(value) {
+  const base = normalizeApiBase(value);
+  try {
+    if (base) localStorage.setItem(API_STORAGE_KEY, base);
+    else localStorage.removeItem(API_STORAGE_KEY);
+  } catch {}
+  renderApiStatus();
+  return base;
+}
+
+function renderApiStatus() {
+  const base = readApiBase();
+  apiDot.classList.toggle("online", Boolean(base));
+  apiStatus.textContent = base ? `已連線：${base.replace(/^https?:\/\//, "")}` : "離線展示模式";
+}
+
+/**
+ * 真的把申請送到承辦端。成功回案件編號（YOUTH-NNN），失敗丟例外。
+ *
+ * 編號由伺服器發，不是這裡算的——這樣申請人拿到的編號才查得到，
+ * LINE Bot 的「查詢進度」用的就是同一組編號。
+ */
+async function submitToServer(base) {
+  const response = await fetch(`${base}/api/applications`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      // ngrok 免費版預設會先回一頁 HTML 攔截頁，回應就不是 JSON 了（ERR_NGROK_6024）。
+      // 這個標頭是官方指定的跳過方式。
+      "ngrok-skip-browser-warning": "1",
+    },
+    body: JSON.stringify({
+      name: nameInput.value.trim(),
+      phone: phoneInput.value.replace(/\s/g, ""),
+      qualification: document.querySelector('input[name="qualification"]:checked').value,
+      tool: toolInput.value.trim(),
+      amount: Number(amountInput.value),
+      documents: [...document.querySelectorAll(".document-item")].map((item) => ({
+        docType: item.querySelector("strong").textContent.trim(),
+        isReady: item.dataset.state === "ok",
+      })),
+    }),
+  });
+
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok) throw new Error(data.error || `伺服器回應 ${response.status}`);
+  return data.caseCode;
+}
+
+/** 離線時用的假編號。格式刻意和伺服器發的 YOUTH-NNN 不一樣，一眼就看得出沒送出去。 */
 function generateCaseNumber() {
   const now = new Date();
   const y = String(now.getFullYear()).slice(-2);
@@ -137,6 +217,57 @@ function generateCaseNumber() {
   const rnd = String(Math.floor(1000 + Math.random() * 9000));
   return `HC-AI-${y}${m}${d}-${rnd}`;
 }
+
+/**
+ * 送出申請並切到完成頁。
+ *
+ * 這裡不會硬失敗：連不上收件伺服器就退回離線假編號，流程照樣走完，
+ * 只是在完成頁掛一段警告說明沒有真的送出去。現場展示不能停在錯誤訊息上。
+ */
+async function finishSubmission() {
+  const base = readApiBase();
+  let caseCode = "";
+  let reason = base ? "" : "尚未設定收件伺服器位址";
+
+  if (base) {
+    try {
+      caseCode = await submitToServer(base);
+    } catch (error) {
+      reason = `連不上收件伺服器（${error.message}）`;
+    }
+  }
+
+  const online = Boolean(caseCode);
+  offlineNotice.hidden = online;
+  if (!online) {
+    caseCode = generateCaseNumber();
+    offlineNotice.querySelector("p").textContent =
+      `${reason}，以下是本機產生的展示編號，承辦端不會收到這筆申請。`;
+  }
+
+  caseNumber.textContent = caseCode;
+  goToStep(4);
+  showToast(online ? "申請已送出，承辦端已收件" : "已完成離線展示流程");
+}
+
+// 網址上帶了 ?api= 就當場存起來，並把它從網址列拿掉——
+// 留著的話使用者一按重新整理就會又送一次同樣的值，也容易被誤複製分享。
+const apiFromUrl = new URLSearchParams(location.search).get("api");
+if (apiFromUrl !== null) {
+  saveApiBase(apiFromUrl);
+  history.replaceState(null, "", location.pathname + location.hash);
+}
+
+apiConfigBtn.addEventListener("click", () => {
+  const input = prompt(
+    "收件伺服器位址（例：https://xxxx.ngrok-free.app）。\n留空則改用離線展示模式。",
+    readApiBase(),
+  );
+  if (input === null) return;
+
+  const saved = saveApiBase(input);
+  showToast(saved ? "已設定收件伺服器" : "已切回離線展示模式");
+});
 
 // Detect whether the mp4 exists.
 // If not, show the built-in placeholder and demo timer.
@@ -265,11 +396,11 @@ nextBtn.addEventListener("click", () => {
     nextBtn.disabled = true;
     nextBtnText.textContent = "送出中…";
 
-    setTimeout(() => {
-      caseNumber.textContent = generateCaseNumber();
-      goToStep(4);
-      showToast("申請已成功送出");
-    }, 650);
+    finishSubmission().finally(() => {
+      // 送出失敗時使用者可能想改完資料再試一次，按鈕不能一直卡在「送出中…」。
+      nextBtn.disabled = false;
+      nextBtnText.textContent = "送出補助申請";
+    });
   }
 });
 
@@ -311,10 +442,13 @@ restartBtn.addEventListener("click", () => {
   demoPlayBtn.disabled = false;
   demoPlayBtn.textContent = "沒有影片？使用 20 秒 Demo 計時";
 
+  offlineNotice.hidden = true;
+
   try { video.currentTime = 0; } catch {}
   goToStep(1);
 });
 
+renderApiStatus();
 calculateEstimate();
 updateStepper();
 updateFooter();

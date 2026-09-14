@@ -23,6 +23,14 @@
       <div class="line-pill">LINE 串聯</div>
     </header>
 
+    <!-- 收件伺服器的位址。它跑在承辦端的電腦上、透過 ngrok 對外，網址每次重開都不一樣，
+         所以不能寫死在程式裡，要讓現場可以當下改。 -->
+    <div class="api-bar">
+      <span class="api-dot" id="apiDot"></span>
+      <span id="apiStatus">離線展示模式</span>
+      <button class="text-btn" id="apiConfigBtn" type="button">連線設定</button>
+    </div>
+
     <main class="main">
       <section class="hero">
         <div class="hero-orb hero-orb-1"></div>
@@ -170,6 +178,7 @@
 
         <div class="form-section">
           <h3>基本資料</h3>
+          <p class="section-note demo-warning">這是展示系統，姓名與電話會真的存進承辦端的展示資料庫，請填假資料。</p>
           <div class="form-grid">
             <label class="field">
               <span>姓名</span>
@@ -281,6 +290,13 @@
             <span>案件編號</span>
             <strong id="caseNumber">HC-AI-000000</strong>
             <button id="copyCaseBtn" class="text-btn" type="button">複製</button>
+          </div>
+
+          <!-- 連不上收件伺服器時退回離線假編號。編號照樣給，但一定要講清楚沒有真的送出去，
+               否則現場會以為承辦端收到了。 -->
+          <div class="offline-notice" id="offlineNotice" hidden>
+            <span>⚠️</span>
+            <p></p>
           </div>
 
           <div class="timeline-card">
