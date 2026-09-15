@@ -83,23 +83,21 @@ button { cursor: pointer; }
 }
 .api-dot.online { background: var(--line); }
 
-.demo-warning { color: var(--danger); }
-
-.offline-notice {
-  display: flex;
-  gap: 10px;
-  text-align: left;
-  margin-top: 14px;
-  padding: 12px 14px;
+/* 「這不是正式服務」的橫幅。刻意不做關閉鈕、也不 sticky——
+   它要一直在頁面最上面，表單長得越像真的就越必要。 */
+.demo-banner {
+  display: grid;
+  gap: 4px;
+  margin-bottom: 16px;
+  padding: 14px 16px;
   border-radius: var(--radius-md);
-  background: #FFF6E6;
   border: 1px solid var(--warning);
+  background: #FFF6E6;
+  line-height: 1.6;
 }
-.offline-notice p { margin: 0; font-size: 13px; line-height: 1.6; color: var(--text); }
 
-/* 上面的 display: flex 是作者樣式，優先權高於瀏覽器預設的 [hidden] { display: none }，
-   不補這條的話送出成功時這個警告框會空著露出來。 */
-.offline-notice[hidden] { display: none; }
+.demo-banner strong { font-size: 14px; }
+.demo-banner span { color: #7A5300; font-size: 12.5px; }
 
 .brand {
   display: flex;
@@ -229,13 +227,22 @@ button { cursor: pointer; }
   box-shadow: var(--shadow-soft);
 }
 
+/* 七格在手機上一定放不下，所以讓它橫向捲，並藏掉捲軸——
+   目前這一格由 app.js 的 updateStepper() 捲進視野。
+   不改成換行是因為換行後步驟之間的連接線會斷在奇怪的地方。 */
 .stepper {
   display: flex;
   align-items: center;
+  overflow-x: auto;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
 }
 
+.stepper::-webkit-scrollbar { display: none; }
+
 .step {
-  min-width: 72px;
+  flex: 0 0 auto;
+  min-width: 68px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -263,9 +270,11 @@ button { cursor: pointer; }
   white-space: nowrap;
 }
 
+/* flex-basis 不能是 0：容器改成可捲動之後，grow 就不再分配空間，
+   basis 0 會讓每條線縮成看不見，七個圓點會黏成一排。 */
 .step-line {
   height: 2px;
-  flex: 1;
+  flex: 1 0 16px;
   margin: 0 -6px 20px;
   background: #E5E9F2;
   transition: .25s ease;
@@ -399,6 +408,7 @@ button { cursor: pointer; }
 }
 
 .watch-copy span { color: var(--muted); }
+.watch-copy span.done { color: var(--line); font-weight: 700; }
 .watch-copy strong { color: var(--navy); }
 
 .progress-track {
@@ -416,7 +426,7 @@ button { cursor: pointer; }
   transition: width .2s linear;
 }
 
-.info-callout, .ai-note, .line-notice {
+.info-callout, .line-notice {
   display: flex;
   gap: 12px;
   margin-top: 18px;
@@ -425,7 +435,7 @@ button { cursor: pointer; }
   background: var(--blue-soft);
 }
 
-.info-callout p, .ai-note p, .line-notice p {
+.info-callout p, .line-notice p {
   margin: 4px 0 0;
   color: var(--muted);
   font-size: 13px;
@@ -535,6 +545,10 @@ button { cursor: pointer; }
   gap: 14px;
 }
 
+/* 作者樣式的 display:grid 優先權高於瀏覽器預設的 [hidden]{display:none}，
+   不補這條的話 #districtRow（戶籍行政區）在還沒選新竹市時就會露出來。 */
+.form-grid[hidden] { display: none; }
+
 .field {
   display: grid;
   gap: 8px;
@@ -556,10 +570,206 @@ button { cursor: pointer; }
   transition: .18s ease;
 }
 
-.field input:focus {
+.field input:focus,
+.field select:focus {
   border-color: var(--blue);
   background: white;
   box-shadow: 0 0 0 4px rgba(52,87,230,.10);
+}
+
+.field input[readonly] {
+  color: var(--muted);
+  background: #F2F4F9;
+  cursor: default;
+}
+
+.field select {
+  width: 100%;
+  height: 52px;
+  padding: 0 40px 0 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  outline: none;
+  color: inherit;
+  background: #FBFCFE
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' fill='none' stroke='%23687087' stroke-width='2' stroke-linecap='round'/></svg>")
+    no-repeat right 16px center;
+  appearance: none;
+  transition: .18s ease;
+}
+
+/* 欄位底下的即時提示。同一個位置會輪流顯示說明、錯誤與「將以 A12****789 保存」，
+   所以顏色由 app.js 掛 .bad / .good 決定，不是三個不同的元素。 */
+.field-hint {
+  color: var(--muted);
+  font-size: 12px;
+  line-height: 1.5;
+  font-weight: 400;
+}
+
+.field-hint.bad { color: var(--danger); }
+.field-hint.good { color: #0B7A3B; }
+
+.field-wide { margin-top: 14px; }
+
+/* .field span 的權重比單一 class 高，不寫成這樣的話標題裡的星號會被它蓋掉。 */
+.req-mark,
+.field span .req-mark,
+.check-card strong .req-mark { color: var(--danger); font-weight: 800; }
+
+/* 只有一行字的勾選卡，例如「同戶籍地址」。 */
+.check-card.compact { padding: 14px 16px; align-items: center; }
+.check-card.compact strong { margin-bottom: 0; }
+
+/* 個資法第 8 條的五項告知。摺疊起來是為了不把整頁撐長。 */
+.legal-block {
+  margin-bottom: 16px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: #FAFBFD;
+}
+
+.legal-block summary {
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--navy);
+}
+
+.legal-block ol {
+  margin: 14px 0 0;
+  padding-left: 20px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.75;
+}
+
+.legal-block li + li { margin-top: 8px; }
+.legal-block strong { color: var(--text); }
+.legal-note { margin: 12px 0 0; color: var(--danger); font-size: 12px; }
+
+/* 申請須知與確認頁共用的「標籤 / 值」清單。 */
+.fact-list { margin: 0; display: grid; gap: 10px; }
+
+.fact-list > div {
+  display: grid;
+  grid-template-columns: 112px 1fr;
+  gap: 12px;
+  align-items: baseline;
+}
+
+.fact-list dt {
+  color: var(--muted);
+  font-size: 12.5px;
+  font-weight: 700;
+}
+
+.fact-list dd {
+  margin: 0;
+  font-size: 13.5px;
+  line-height: 1.65;
+  overflow-wrap: anywhere;
+}
+
+.grant-table { display: grid; gap: 10px; margin-top: 12px; }
+
+.grant-row {
+  display: grid;
+  grid-template-columns: 1fr auto auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: #FAFBFD;
+  font-size: 13px;
+}
+
+.grant-row span { color: var(--muted); white-space: nowrap; }
+
+.doc-brief { margin: 0; padding: 0; list-style: none; display: grid; gap: 10px; }
+
+.doc-brief li {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: 4px 10px;
+  padding: 14px 16px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: white;
+}
+
+.doc-brief small {
+  grid-column: 1 / -1;
+  color: var(--muted);
+  font-size: 12.5px;
+  line-height: 1.55;
+}
+
+.doc-tag {
+  align-self: start;
+  padding: 4px 9px;
+  border-radius: 999px;
+  color: var(--blue);
+  background: var(--blue-soft);
+  font-size: 11px;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+/* 資格預檢的結果框。和 .security-result 長得一樣，但多了不符項目清單。 */
+.eligibility-result {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-top: 22px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid var(--border);
+  background: #FAFBFD;
+  transition: .2s ease;
+}
+
+.eligibility-result.complete {
+  border-color: rgba(6,199,85,.25);
+  background: var(--success-soft);
+}
+
+.eligibility-result.bad {
+  border-color: rgba(229,72,77,.28);
+  background: #FDF0F0;
+}
+
+.eligibility-result span { display: block; color: var(--muted); font-size: 12px; }
+.eligibility-result strong { font-size: 16px; }
+
+.failure-list {
+  margin: 10px 0 0;
+  padding-left: 18px;
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.65;
+}
+
+.failure-list:empty { display: none; }
+
+/* 「這幾個欄位不會被保存」的說明。放在表單最上面，在使用者開始打字之前。 */
+.privacy-callout {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 22px;
+  padding: 16px;
+  border-radius: 16px;
+  border: 1px solid rgba(52,87,230,.18);
+  background: var(--blue-soft);
+}
+
+.privacy-callout p {
+  margin: 4px 0 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
 }
 
 .qualification-grid {
@@ -628,55 +838,129 @@ button { cursor: pointer; }
 .estimate-card small { display:block; margin-top:4px; opacity:.72; }
 .estimate-card strong { font-size:26px; }
 
-.document-list {
-  display:grid;
-  gap:10px;
-}
+/* 應備文件上傳 */
 
-.document-item {
-  width:100%;
+.upload-list { display:grid; gap:12px; margin-top:18px; }
+
+.upload-item {
   display:flex;
-  align-items:center;
-  gap:12px;
-  padding:15px;
+  align-items:flex-start;
+  gap:14px;
+  padding:16px;
   border:1px solid var(--border);
   border-radius:16px;
   background:white;
-  text-align:left;
   transition:.18s ease;
 }
 
-.document-item:hover { transform: translateY(-1px); }
-
-.doc-icon {
-  display:grid;
-  place-items:center;
-  width:42px;
-  height:42px;
-  border-radius:13px;
-  background:#F3F5F9;
+.upload-item.ok {
+  border-color:rgba(6,199,85,.32);
+  background:var(--success-soft);
 }
 
-.doc-copy { flex:1; min-width:0; }
-.doc-copy strong { display:block; }
-.doc-copy small {
-  display:block;
-  margin-top:3px;
-  color:var(--muted);
+.upload-copy { flex:1; min-width:0; display:grid; gap:4px; }
+.upload-copy strong { font-size:15px; }
+.upload-copy small { color:var(--muted); font-size:12.5px; line-height:1.55; }
+.upload-copy .doc-tag { justify-self:start; }
+
+.upload-file {
+  margin-top:6px;
+  padding:9px 11px;
+  border-radius:10px;
+  background:rgba(255,255,255,.75);
+  font-size:12.5px;
+  overflow-wrap:anywhere;
 }
 
-.doc-status {
+.upload-error {
+  margin-top:6px;
+  color:var(--danger);
+  font-size:12.5px;
+  line-height:1.5;
+}
+
+/* 同一個框也拿來顯示「上傳中…」，那不是錯誤，不該是紅的。 */
+.upload-error.pending { color:var(--muted); }
+
+.upload-actions {
   flex:0 0 auto;
-  padding:7px 9px;
-  border-radius:999px;
-  font-size:11px;
-  font-weight:800;
+  display:grid;
+  gap:6px;
+  justify-items:stretch;
 }
 
-.document-item.ok .doc-status { color:#075E2B; background:#E7F9ED; }
-.document-item.warning .doc-status { color:#8A5A00; background:#FFF3D9; }
+/* .ghost-btn 原本是深色影片區塊上的按鈕，在白底這裡要換一套顏色。 */
+.upload-pick {
+  margin:0;
+  padding:11px 14px;
+  border:1px solid var(--blue);
+  border-radius:12px;
+  color:var(--blue);
+  background:white;
+  font-size:13px;
+  font-weight:800;
+  text-align:center;
+  cursor:pointer;
+}
 
-.ai-note { background:#F7F9FF; }
+.upload-actions .text-btn { font-size:12px; }
+
+.upload-offline {
+  display:flex;
+  gap:10px;
+  margin-top:16px;
+  padding:14px 16px;
+  border:1px solid var(--warning);
+  border-radius:var(--radius-md);
+  background:#FFF6E6;
+}
+
+.upload-offline p { margin:0; font-size:13px; line-height:1.6; }
+
+/* display:flex 是作者樣式，優先權高於瀏覽器預設的 [hidden]{display:none}，
+   不補這條的話連上伺服器時這塊警告會空著露出來。 */
+.upload-offline[hidden] { display:none; }
+
+/* 確認頁 */
+
+.review { display:grid; gap:18px; }
+
+.review-group {
+  padding:18px;
+  border:1px solid var(--border);
+  border-radius:16px;
+  background:#FAFBFD;
+}
+
+.review-group h3 { margin:0 0 14px; font-size:15px; }
+.review-note { margin:12px 0 0; color:var(--muted); font-size:12.5px; line-height:1.55; }
+
+.review-docs { margin:0; padding:0; list-style:none; display:grid; gap:10px; }
+
+.review-docs li {
+  display:flex;
+  align-items:flex-start;
+  gap:10px;
+  font-size:13.5px;
+}
+
+.review-docs li > span { flex:0 0 auto; font-weight:800; }
+.review-docs li.ok > span { color:var(--line); }
+.review-docs li.missing > span { color:var(--warning); }
+.review-docs small { display:block; margin-top:2px; color:var(--muted); font-size:12.5px; }
+
+.submit-error {
+  display:flex;
+  gap:12px;
+  margin-top:18px;
+  padding:16px;
+  border:1px solid rgba(229,72,77,.35);
+  border-radius:16px;
+  background:#FDF0F0;
+}
+
+.submit-error p { margin:4px 0 0; font-size:13px; line-height:1.6; }
+.submit-error[hidden] { display:none; }
 
 .success-wrap {
   max-width: 580px;
@@ -705,21 +989,56 @@ button { cursor: pointer; }
   line-height:1.65;
 }
 
-.case-card {
-  display:grid;
-  grid-template-columns:1fr auto;
-  align-items:center;
-  gap:3px 12px;
+/* 收件回執。這一塊是唯一會被列印出來的東西（見檔尾的 @media print）。 */
+.receipt {
   margin-top:22px;
-  padding:18px;
+  padding:22px;
+  border:1px solid var(--border);
   border-radius:18px;
+  background:white;
   text-align:left;
-  background:var(--blue-soft);
 }
 
-.case-card span { grid-column:1; color:var(--muted); font-size:12px; }
-.case-card strong { grid-column:1; color:var(--navy); font-size:19px; }
-.case-card .text-btn { grid-column:2; grid-row:1 / span 2; }
+.receipt-head {
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:16px;
+  padding-bottom:16px;
+  margin-bottom:18px;
+  border-bottom:2px solid var(--navy);
+}
+
+.receipt-title { color:var(--navy); font-size:16px; font-weight:800; line-height:1.4; }
+.receipt-sub { margin-top:4px; color:var(--muted); font-size:12px; }
+
+/* 仿公文的收件戳。刻意用示範用的橘色而不是紅色，少一分被誤認成真章的機會。 */
+.receipt-stamp {
+  flex:0 0 auto;
+  padding:8px 12px;
+  border:2px solid var(--warning);
+  border-radius:8px;
+  color:var(--warning);
+  font-size:13px;
+  font-weight:900;
+  letter-spacing:.15em;
+  transform:rotate(-6deg);
+}
+
+.receipt .fact-list > div { grid-template-columns:104px 1fr; }
+.receipt .fact-list dd strong { color:var(--navy); font-size:17px; }
+.receipt .text-btn { margin-left:8px; font-size:12px; }
+
+.receipt-note {
+  margin:18px 0 0;
+  padding-top:14px;
+  border-top:1px solid var(--border);
+  color:var(--muted);
+  font-size:12px;
+  line-height:1.65;
+}
+
+.receipt-actions { margin-top:4px; }
 
 .text-btn {
   border:0;
@@ -830,10 +1149,27 @@ button { cursor: pointer; }
 }
 
 .footer-status {
+  flex:1;
+  min-width:0;
   color:var(--muted);
   font-size:12px;
   line-height:1.45;
 }
+
+/* 上一步。七個步驟沒有回頭路的話，使用者發現第二步填錯就只能整份重來。 */
+.back-btn {
+  flex:0 0 auto;
+  min-height:52px;
+  padding:0 14px;
+  border:1px solid var(--border);
+  border-radius:15px;
+  color:var(--muted);
+  background:white;
+  font-size:13px;
+  font-weight:800;
+}
+
+.back-btn[hidden] { display:none; }
 
 .primary-btn {
   min-width:200px;
@@ -903,6 +1239,18 @@ button { cursor: pointer; }
   .step-label { font-size:10px; }
   .step-line { margin-left:-8px; margin-right:-8px; }
 
+  .demo-banner { padding:12px 14px; }
+  .fact-list > div,
+  .receipt .fact-list > div { grid-template-columns:1fr; gap:2px; }
+  .grant-row { grid-template-columns:1fr; gap:4px; }
+
+  .upload-item { flex-direction:column; }
+  .upload-actions { width:100%; grid-auto-flow:column; grid-auto-columns:1fr; gap:10px; }
+
+  .receipt { padding:18px 16px; }
+  .receipt-head { flex-direction:column-reverse; align-items:flex-start; }
+  .receipt-stamp { align-self:flex-end; }
+
   .panel {
     padding:20px 16px;
     border-radius:22px;
@@ -922,11 +1270,6 @@ button { cursor: pointer; }
     flex-direction:column;
   }
 
-  .doc-status {
-    max-width:88px;
-    text-align:center;
-  }
-
   .footer-inner { gap:10px; }
   .footer-status { display:none; }
   .primary-btn { width:100%; min-width:0; }
@@ -938,4 +1281,37 @@ button { cursor: pointer; }
   .step { min-width:49px; }
   .step-label { font-size:9px; }
   .panel h2 { font-size:24px; }
+  .back-btn { padding:0 11px; font-size:12px; }
+}
+
+/* ---------------------------------------------------------------------------
+ * 列印
+ *
+ * 申請人常會把收件回執印下來或存成 PDF 存查，所以列印時只留回執本身：
+ * 頁首、步驟列、固定在底部的按鈕列印出來只是浪費紙，而且會蓋住內容。
+ *
+ * 用 visibility 而不是 display:none 把整頁藏起來——後者會讓 #receipt
+ * 連同祖先一起消失，再怎麼設定也救不回來。
+ * ------------------------------------------------------------------------- */
+@media print {
+  body { background:white; }
+  body * { visibility:hidden; }
+
+  #receipt, #receipt * { visibility:visible; }
+
+  #receipt {
+    position:absolute;
+    left:0;
+    top:0;
+    width:100%;
+    margin:0;
+    padding:0;
+    border:0;
+  }
+
+  /* 複製鈕在紙上按不動。 */
+  #copyCaseBtn { display:none; }
+
+  .topbar, .api-bar, .sticky-footer, .toast { display:none !important; }
+  .app-shell { padding-bottom:0; }
 }

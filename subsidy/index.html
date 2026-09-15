@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
   <meta name="theme-color" content="#151B4D" />
-  <title>AI領航青年數位工具補助｜Demo</title>
+  <title>新竹市青年 AI 數位工具補助｜線上申請（示範）</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
@@ -16,8 +16,8 @@
       <div class="brand">
         <div class="brand-mark">🧭</div>
         <div>
-          <div class="brand-title">AI領航青年數位工具補助</div>
-          <div class="brand-subtitle">新竹市青年發展中心｜LINE LIFF Demo</div>
+          <div class="brand-title">新竹市青年 AI 數位工具補助</div>
+          <div class="brand-subtitle">線上申請（黑客松示範系統）</div>
         </div>
       </div>
       <div class="line-pill">LINE 串聯</div>
@@ -32,52 +32,228 @@
     </div>
 
     <main class="main">
+      <!-- 這不是新竹市政府的正式服務。這句話放在所有內容之前，而且不可關閉——
+           表單長得越像真的，這個提醒就越必要。 -->
+      <div class="demo-banner" role="note">
+        <strong>這是黑客松示範系統，不是新竹市政府的正式申請管道。</strong>
+        <span>要點名稱、公告文號、承辦窗口與補助基準全部是示範資料。請勿填寫真實的身分證字號、金融帳號或地址。</span>
+      </div>
+
       <section class="hero">
         <div class="hero-orb hero-orb-1"></div>
         <div class="hero-orb hero-orb-2"></div>
         <div class="hero-content">
-          <div class="eyebrow">竹青 AI PASS</div>
+          <div class="eyebrow">竹青 AI 安心辦</div>
           <h1>懂資安，再出發。</h1>
-          <p>從資安認知、補助申請到撥款追蹤，一站完成。</p>
+          <p>從申請須知、資格預檢、資安宣導到線上收件，一次走完，進度由 LINE 通知。</p>
           <div class="hero-badges">
-            <span>🛡️ AI資安檢核</span>
-            <span>💬 LINE進度通知</span>
-            <span>⚡ 智慧文件檢核</span>
+            <span>🛡️ AI 資安檢核</span>
+            <span>💬 LINE 進度通知</span>
+            <span>📎 線上檢附文件</span>
           </div>
         </div>
       </section>
 
       <section class="progress-card">
+        <!-- 七個步驟在手機上放不下，所以這條是可以橫向捲動的，
+             而且切換步驟時會把目前這一格捲進視野（見 app.js 的 updateStepper）。 -->
         <div class="stepper" id="stepper">
           <div class="step active" data-step="1">
             <span class="step-dot">1</span>
-            <span class="step-label">資安宣導</span>
+            <span class="step-label">申請須知</span>
           </div>
           <div class="step-line"></div>
           <div class="step" data-step="2">
             <span class="step-dot">2</span>
-            <span class="step-label">安全檢核</span>
+            <span class="step-label">資格預檢</span>
           </div>
           <div class="step-line"></div>
           <div class="step" data-step="3">
             <span class="step-dot">3</span>
-            <span class="step-label">補助申請</span>
+            <span class="step-label">資安宣導</span>
           </div>
           <div class="step-line"></div>
           <div class="step" data-step="4">
             <span class="step-dot">4</span>
-            <span class="step-label">完成追蹤</span>
+            <span class="step-label">填申請書</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" data-step="5">
+            <span class="step-dot">5</span>
+            <span class="step-label">應備文件</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" data-step="6">
+            <span class="step-dot">6</span>
+            <span class="step-label">確認送出</span>
+          </div>
+          <div class="step-line"></div>
+          <div class="step" data-step="7">
+            <span class="step-dot">7</span>
+            <span class="step-label">收件回執</span>
           </div>
         </div>
       </section>
 
-      <!-- STEP 1 -->
+      <!-- ================================================================
+           STEP 1｜申請須知
+           =============================================================== -->
       <section class="panel step-panel active" id="panel-1">
         <div class="panel-header">
           <div>
             <div class="section-kicker">STEP 01</div>
+            <h2>申請須知</h2>
+            <p>請先確認法規依據、受理期間與補助基準，再開始填寫。</p>
+          </div>
+          <div class="shield-icon">📋</div>
+        </div>
+
+        <div class="form-section">
+          <h3>法規依據與受理期間</h3>
+          <dl class="fact-list">
+            <div><dt>法規依據</dt><dd id="factLegalBasis">—</dd></div>
+            <div><dt>公告文號</dt><dd id="factAnnouncement">—</dd></div>
+            <div><dt>受理期間</dt><dd id="factWindow">—</dd></div>
+            <div><dt>處理期間</dt><dd id="factReviewDays">—</dd></div>
+            <div><dt>補正期限</dt><dd id="factCorrection">—</dd></div>
+          </dl>
+        </div>
+
+        <div class="form-section">
+          <h3>補助對象與基準</h3>
+          <p class="section-note" id="factEligibility">—</p>
+          <div class="grant-table" id="grantTable"></div>
+        </div>
+
+        <div class="form-section">
+          <h3>應備文件</h3>
+          <ul class="doc-brief" id="docBrief"></ul>
+        </div>
+
+        <div class="form-section">
+          <h3>承辦窗口</h3>
+          <dl class="fact-list">
+            <div><dt>承辦單位</dt><dd id="factUnit">—</dd></div>
+            <div><dt>聯絡電話</dt><dd id="factPhone">—</dd></div>
+            <div><dt>電子信箱</dt><dd id="factEmail">—</dd></div>
+            <div><dt>服務時間</dt><dd id="factHours">—</dd></div>
+          </dl>
+        </div>
+
+        <div class="form-section">
+          <h3>個人資料蒐集告知事項</h3>
+          <!-- 個資法第 8 條規定的五項告知。摺疊起來是為了不讓它把整頁撐長，
+               但預設就看得到標題，而且同意勾選在它正下方——不是藏在別的地方。 -->
+          <details class="legal-block">
+            <summary>依《個人資料保護法》第 8 條規定告知（點開閱讀全文）</summary>
+            <ol>
+              <li><strong>蒐集之目的：</strong>辦理「新竹市青年 AI 數位工具補助」之資格審查、文件審查、核銷、撥款、統計分析及後續聯繫。</li>
+              <li><strong>個人資料之類別：</strong>姓名、國民身分證統一編號、出生年月日、戶籍及通訊地址、行動電話、電子郵件、金融機構帳戶資料，以及申請人自行檢附之證明文件。</li>
+              <li><strong>利用之期間、地區、對象及方式：</strong>於上述蒐集目的之存續期間內，在中華民國境內，由承辦機關及其委外單位，以電子或紙本方式處理及利用。</li>
+              <li><strong>當事人得行使之權利：</strong>依本法第 3 條規定，得向承辦機關請求查詢、閱覽、製給複製本、補充或更正、停止蒐集處理利用，或請求刪除。</li>
+              <li><strong>不提供之影響：</strong>本案件之審查以上述資料為必要，未提供或提供不完整者，將致無法受理申請。</li>
+            </ol>
+            <p class="legal-note">本頁為示範系統，上述內容僅供展示流程之用，不具法律效力。</p>
+          </details>
+
+          <div class="check-list">
+            <label class="check-card">
+              <input type="checkbox" id="consentPrivacy" />
+              <span class="check-box">✓</span>
+              <span>
+                <strong>我已閱讀並同意個人資料蒐集告知事項</strong>
+                <small>未同意者無法受理申請。</small>
+              </span>
+            </label>
+
+            <label class="check-card">
+              <input type="checkbox" id="consentTerms" />
+              <span class="check-box">✓</span>
+              <span>
+                <strong>我已閱讀並同意申請須知及切結事項</strong>
+                <small>申請人保證所填資料及檢附文件均屬實；如有不實，願撤銷補助並繳回已領款項。</small>
+              </span>
+            </label>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           STEP 2｜資格預檢
+           =============================================================== -->
+      <section class="panel step-panel" id="panel-2">
+        <div class="panel-header">
+          <div>
+            <div class="section-kicker">STEP 02</div>
+            <h2>資格預檢</h2>
+            <p>先確認你符合資格，再花時間填整份申請書。</p>
+          </div>
+          <div class="shield-icon">✅</div>
+        </div>
+
+        <div class="form-section">
+          <h3>基本條件</h3>
+          <div class="form-grid">
+            <label class="field">
+              <span>出生年月日</span>
+              <input id="birthInput" type="date" autocomplete="bday">
+              <small class="field-hint" id="ageHint">以申請當日足歲計算。</small>
+            </label>
+            <label class="field">
+              <span>戶籍縣市</span>
+              <select id="cityInput">
+                <option value="">請選擇</option>
+                <option value="新竹市">新竹市</option>
+                <option value="__other__">其他縣市</option>
+              </select>
+              <small class="field-hint">本計畫限設籍新竹市之青年申請。</small>
+            </label>
+          </div>
+
+          <div class="form-grid" id="districtRow">
+            <label class="field">
+              <span>戶籍行政區</span>
+              <select id="districtInput">
+                <option value="">請選擇</option>
+              </select>
+            </label>
+            <div></div>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>切結事項</h3>
+          <div class="check-list">
+            <label class="check-card">
+              <input type="checkbox" id="noDuplicate" />
+              <span class="check-box">✓</span>
+              <span>
+                <strong>未重複請領</strong>
+                <small>本人就同一項目未向其他機關（構）申請或領取性質相同之補助。</small>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="eligibility-result" id="eligibilityResult">
+          <div class="result-icon">🔎</div>
+          <div>
+            <span>資格預檢</span>
+            <strong id="eligibilityHeadline">請先完成上方欄位</strong>
+            <ul class="failure-list" id="eligibilityFailures"></ul>
+          </div>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           STEP 3｜資安宣導與 AI 安全三問
+           =============================================================== -->
+      <section class="panel step-panel" id="panel-3">
+        <div class="panel-header">
+          <div>
+            <div class="section-kicker">STEP 03</div>
             <h2>先花 20 秒，保護你的資料</h2>
-            <p>資安宣導影片播放完成後，才能繼續申請。</p>
+            <p>看完宣導並完成三項自我檢核後，才能進入申請書。</p>
           </div>
           <div class="shield-icon">🛡️</div>
         </div>
@@ -107,124 +283,200 @@
           </div>
         </div>
 
-        <div class="info-callout">
-          <span>💡</span>
-          <div>
-            <strong>為什麼要先看？</strong>
-            <p>補助不只是教你用 AI，也希望你在使用前先辨識個資、機密與著作權風險。</p>
+        <div class="form-section">
+          <h3>AI 安全三問</h3>
+          <div class="check-list">
+            <label class="check-card">
+              <input type="checkbox" class="security-check" />
+              <span class="check-box">✓</span>
+              <span>
+                <strong>資料安全</strong>
+                <small>我不會上傳個資、機密或未公開資訊至未經授權的公開生成式 AI。</small>
+              </span>
+            </label>
+
+            <label class="check-card">
+              <input type="checkbox" class="security-check" />
+              <span class="check-box">✓</span>
+              <span>
+                <strong>工具可信</strong>
+                <small>我會確認 AI 工具來源、隱私政策與資料是否可能被保存或用於模型訓練。</small>
+              </span>
+            </label>
+
+            <label class="check-card">
+              <input type="checkbox" class="security-check" />
+              <span class="check-box">✓</span>
+              <span>
+                <strong>合法使用</strong>
+                <small>我會確認 AI 生成內容是否涉及著作權、肖像、商標或其他授權限制。</small>
+              </span>
+            </label>
+          </div>
+
+          <div class="security-result" id="securityResult">
+            <div class="result-icon">🛡️</div>
+            <div>
+              <span>AI 安全檢核</span>
+              <strong>尚未完成</strong>
+            </div>
           </div>
         </div>
       </section>
 
-      <!-- STEP 2 -->
-      <section class="panel step-panel" id="panel-2">
+      <!-- ================================================================
+           STEP 4｜申請書
+           =============================================================== -->
+      <section class="panel step-panel" id="panel-4">
         <div class="panel-header">
           <div>
-            <div class="section-kicker">STEP 02</div>
-            <h2>AI 安全三問</h2>
-            <p>完成三項檢核後，即可進入申請流程。</p>
-          </div>
-          <div class="shield-icon">✓</div>
-        </div>
-
-        <div class="check-list">
-          <label class="check-card">
-            <input type="checkbox" class="security-check" />
-            <span class="check-box">✓</span>
-            <span>
-              <strong>資料安全</strong>
-              <small>我不會上傳個資、機密或未公開資訊至未經授權的公開生成式 AI。</small>
-            </span>
-          </label>
-
-          <label class="check-card">
-            <input type="checkbox" class="security-check" />
-            <span class="check-box">✓</span>
-            <span>
-              <strong>工具可信</strong>
-              <small>我會確認 AI 工具來源、隱私政策與資料是否可能被保存或用於模型訓練。</small>
-            </span>
-          </label>
-
-          <label class="check-card">
-            <input type="checkbox" class="security-check" />
-            <span class="check-box">✓</span>
-            <span>
-              <strong>合法使用</strong>
-              <small>我會確認 AI 生成內容是否涉及著作權、肖像、商標或其他授權限制。</small>
-            </span>
-          </label>
-        </div>
-
-        <div class="security-result" id="securityResult">
-          <div class="result-icon">🛡️</div>
-          <div>
-            <span>AI 安全檢核</span>
-            <strong>尚未完成</strong>
-          </div>
-        </div>
-      </section>
-
-      <!-- STEP 3 -->
-      <section class="panel step-panel" id="panel-3">
-        <div class="panel-header">
-          <div>
-            <div class="section-kicker">STEP 03</div>
-            <h2>青年數位工具補助申請</h2>
-            <p>幾分鐘完成，後續審核進度將透過 LINE 通知。</p>
+            <div class="section-kicker">STEP 04</div>
+            <h2>補助申請書</h2>
+            <p>標示 <span class="req-mark">*</span> 者為必填。資料僅用於本案審查。</p>
           </div>
           <div class="line-login">✓ 已透過 LINE 登入</div>
         </div>
 
+        <div class="privacy-callout">
+          <span>🔒</span>
+          <div>
+            <strong>身分證字號、金融帳號與門牌不會被保存</strong>
+            <p>伺服器只驗證格式與檢查碼，寫進資料庫的是遮蔽碼（例如 A12****789、700-******5678、新竹市東區○○○）。即使如此，這是示範系統，請填寫假資料。</p>
+          </div>
+        </div>
+
         <div class="form-section">
-          <h3>基本資料</h3>
-          <p class="section-note demo-warning">這是展示系統，姓名與電話會真的存進承辦端的展示資料庫，請填假資料。</p>
+          <h3>申請人基本資料</h3>
           <div class="form-grid">
             <label class="field">
-              <span>姓名</span>
+              <span>姓名 <span class="req-mark">*</span></span>
               <input id="nameInput" type="text" placeholder="請輸入姓名" autocomplete="name">
             </label>
             <label class="field">
-              <span>聯絡電話</span>
+              <span>國民身分證統一編號 <span class="req-mark">*</span></span>
+              <input id="idInput" type="text" placeholder="A123456789" maxlength="10" autocapitalize="characters" spellcheck="false">
+              <small class="field-hint" id="idHint">會即時檢查檢查碼，不會被保存。</small>
+            </label>
+            <label class="field">
+              <span>行動電話 <span class="req-mark">*</span></span>
               <input id="phoneInput" type="tel" placeholder="09XX XXX XXX" autocomplete="tel">
+            </label>
+            <label class="field">
+              <span>電子郵件 <span class="req-mark">*</span></span>
+              <input id="emailInput" type="email" placeholder="you@example.com" autocomplete="email" spellcheck="false">
             </label>
           </div>
         </div>
 
         <div class="form-section">
-          <h3>補助資格</h3>
+          <h3>戶籍地址</h3>
+          <div class="form-grid">
+            <label class="field">
+              <span>縣市</span>
+              <input id="residenceCity" type="text" readonly>
+              <small class="field-hint">沿用資格預檢填寫的縣市。</small>
+            </label>
+            <label class="field">
+              <span>行政區</span>
+              <input id="residenceDistrict" type="text" readonly>
+            </label>
+          </div>
+          <label class="field field-wide">
+            <span>詳細地址（路、段、巷、號、樓） <span class="req-mark">*</span></span>
+            <input id="residenceDetail" type="text" placeholder="中央路 100 號 5 樓" autocomplete="street-address">
+          </label>
+        </div>
+
+        <div class="form-section">
+          <h3>通訊地址</h3>
+          <div class="check-list">
+            <label class="check-card compact">
+              <input type="checkbox" id="mailingSame" checked />
+              <span class="check-box">✓</span>
+              <span><strong>同戶籍地址</strong></span>
+            </label>
+          </div>
+
+          <div id="mailingFields" hidden>
+            <div class="form-grid">
+              <label class="field">
+                <span>縣市 <span class="req-mark">*</span></span>
+                <input id="mailingCity" type="text" placeholder="新竹市">
+              </label>
+              <label class="field">
+                <span>鄉鎮市區 <span class="req-mark">*</span></span>
+                <input id="mailingDistrict" type="text" placeholder="東區">
+              </label>
+            </div>
+            <label class="field field-wide">
+              <span>詳細地址 <span class="req-mark">*</span></span>
+              <input id="mailingDetail" type="text" placeholder="光復路一段 1 號">
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>撥款帳戶</h3>
+          <div class="form-grid">
+            <label class="field">
+              <span>金融機構代號（3 碼） <span class="req-mark">*</span></span>
+              <input id="bankCode" type="text" inputmode="numeric" maxlength="3" placeholder="700">
+              <small class="field-hint">例：700 中華郵政、004 臺灣銀行、822 中國信託。</small>
+            </label>
+            <label class="field">
+              <span>帳號（10–16 碼） <span class="req-mark">*</span></span>
+              <input id="bankAccount" type="text" inputmode="numeric" maxlength="20" placeholder="0012345678">
+              <small class="field-hint" id="bankHint">不會被保存，只留末四碼供承辦核對。</small>
+            </label>
+          </div>
+
+          <div class="check-list">
+            <label class="check-card compact">
+              <input type="checkbox" id="bankSelf" />
+              <span class="check-box">✓</span>
+              <span>
+                <strong>本帳戶戶名為申請人本人 <span class="req-mark">*</span></strong>
+                <small>補助款僅得匯入申請人本人帳戶。</small>
+              </span>
+            </label>
+          </div>
+        </div>
+
+        <div class="form-section">
+          <h3>補助身分別</h3>
           <div class="qualification-grid">
             <label class="qual-card active">
               <input type="radio" name="qualification" value="general" checked>
               <div class="qual-top">
                 <span class="radio-ui"></span>
-                <strong>一般青年</strong>
+                <strong id="qualGeneralLabel">一般青年</strong>
               </div>
-              <div class="qual-value">補助 50%</div>
-              <small>每人最高 NT$3,000</small>
+              <div class="qual-value" id="qualGeneralRate">補助 50%</div>
+              <small id="qualGeneralCap">每人最高 NT$3,000</small>
             </label>
 
             <label class="qual-card">
               <input type="radio" name="qualification" value="lowincome">
               <div class="qual-top">
                 <span class="radio-ui"></span>
-                <strong>低收／中低收入戶</strong>
+                <strong id="qualLowLabel">低收入戶／中低收入戶</strong>
               </div>
-              <div class="qual-value">補助 90%</div>
-              <small>每人最高 NT$6,000</small>
+              <div class="qual-value" id="qualLowRate">補助 90%</div>
+              <small id="qualLowCap">每人最高 NT$6,000</small>
             </label>
           </div>
+          <p class="section-note">選擇低收入戶／中低收入戶者，須於下一步檢附有效期間涵蓋申請日的證明文件。</p>
         </div>
 
         <div class="form-section">
-          <h3>工具與金額</h3>
+          <h3>補助標的</h3>
           <div class="form-grid">
             <label class="field">
-              <span>工具名稱</span>
+              <span>工具名稱 <span class="req-mark">*</span></span>
               <input id="toolInput" type="text" placeholder="例：Adobe Creative Cloud">
             </label>
             <label class="field">
-              <span>購買金額（NT$）</span>
+              <span>購買金額（NT$） <span class="req-mark">*</span></span>
               <input id="amountInput" type="number" min="0" step="100" placeholder="4000">
             </label>
           </div>
@@ -236,98 +488,147 @@
             </div>
             <strong id="estimateAmount">NT$0</strong>
           </div>
-        </div>
-
-        <div class="form-section">
-          <h3>智慧文件檢核</h3>
-          <p class="section-note">Demo 模擬：點擊項目即可切換檢核狀態。</p>
-
-          <div class="document-list">
-            <button class="document-item ok" type="button" data-state="ok">
-              <span class="doc-icon">🪪</span>
-              <span class="doc-copy">
-                <strong>身分證明</strong>
-                <small>已辨識姓名與基本資格</small>
-              </span>
-              <span class="doc-status">✓ 已通過</span>
-            </button>
-
-            <button class="document-item ok" type="button" data-state="ok">
-              <span class="doc-icon">🧾</span>
-              <span class="doc-copy">
-                <strong>購買憑證</strong>
-                <small>金額、日期與品項格式正常</small>
-              </span>
-              <span class="doc-status">✓ 已通過</span>
-            </button>
-
-            <button class="document-item warning" type="button" data-state="warning">
-              <span class="doc-icon">🏦</span>
-              <span class="doc-copy">
-                <strong>帳戶資料</strong>
-                <small>尚未完成檢核</small>
-              </span>
-              <span class="doc-status">⚠ 待確認</span>
-            </button>
-          </div>
-
-          <div class="ai-note">
-            <span>⚡</span>
-            <p><strong>智慧初檢：</strong>系統可先協助辨識缺件、格式與關鍵欄位，再交由承辦人員進行正式審核。</p>
-          </div>
+          <p class="section-note">預估金額僅供參考，實際核定金額以承辦機關審查結果為準。</p>
         </div>
       </section>
 
-      <!-- STEP 4 -->
-      <section class="panel step-panel" id="panel-4">
+      <!-- ================================================================
+           STEP 5｜應備文件
+           =============================================================== -->
+      <section class="panel step-panel" id="panel-5">
+        <div class="panel-header">
+          <div>
+            <div class="section-kicker">STEP 05</div>
+            <h2>檢附應備文件</h2>
+            <p id="uploadLimitNote">支援 JPG、PNG、PDF，單檔最大 5 MB。</p>
+          </div>
+          <div class="shield-icon">📎</div>
+        </div>
+
+        <!-- 缺件不擋送出：政府流程是先收件、再形式審查，缺的走補正。
+             所以這裡的訊息是「會通知你補」，不是「不准送出」。 -->
+        <div class="info-callout">
+          <span>💡</span>
+          <div>
+            <strong>現在缺件也可以送出</strong>
+            <p>收件後會進行形式審查，缺漏文件將另行通知限期補正。先送出可以確定收件時間。</p>
+          </div>
+        </div>
+
+        <div class="upload-list" id="uploadList"></div>
+
+        <div class="upload-offline" id="uploadOffline" hidden>
+          <span>⚠️</span>
+          <p>尚未連線到收件伺服器，目前無法上傳檔案。你仍可以繼續送出申請，文件之後再補。</p>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           STEP 6｜確認送出
+           =============================================================== -->
+      <section class="panel step-panel" id="panel-6">
+        <div class="panel-header">
+          <div>
+            <div class="section-kicker">STEP 06</div>
+            <h2>確認申請內容</h2>
+            <p>送出後即完成收件，內容需更正請聯繫承辦窗口。</p>
+          </div>
+          <div class="shield-icon">🔍</div>
+        </div>
+
+        <div class="review" id="review"></div>
+
+        <div class="submit-error" id="submitError" hidden>
+          <span>⚠️</span>
+          <div>
+            <strong>尚未送出</strong>
+            <p id="submitErrorText"></p>
+          </div>
+        </div>
+
+        <div class="check-list">
+          <label class="check-card">
+            <input type="checkbox" id="finalConfirm" />
+            <span class="check-box">✓</span>
+            <span>
+              <strong>我確認以上內容正確無誤</strong>
+              <small>申請人保證所填資料及檢附文件均屬實。</small>
+            </span>
+          </label>
+        </div>
+      </section>
+
+      <!-- ================================================================
+           STEP 7｜收件回執
+           =============================================================== -->
+      <section class="panel step-panel" id="panel-7">
         <div class="success-wrap">
           <div class="success-icon">✓</div>
-          <div class="section-kicker">申請完成</div>
-          <h2>申請已成功送出！</h2>
-          <p>我們會透過 LINE 主動通知審核、補件、核銷與撥款進度。</p>
+          <div class="section-kicker">收件完成</div>
+          <h2>已完成收件</h2>
+          <p>收件不等於受理。承辦人員完成形式審查後，將透過 LINE 通知審查結果。</p>
 
-          <div class="case-card">
-            <span>案件編號</span>
-            <strong id="caseNumber">HC-AI-000000</strong>
-            <button id="copyCaseBtn" class="text-btn" type="button">複製</button>
+          <!-- 收件回執。這一塊是可以列印的（styles.css 的 @media print 只留它）。 -->
+          <div class="receipt" id="receipt">
+            <div class="receipt-head">
+              <div>
+                <div class="receipt-title" id="receiptProgram">新竹市青年 AI 數位工具補助</div>
+                <div class="receipt-sub">線上申請收件回執（示範）</div>
+              </div>
+              <div class="receipt-stamp">收件</div>
+            </div>
+
+            <dl class="fact-list">
+              <div><dt>案件編號</dt><dd><strong id="caseNumber">—</strong> <button id="copyCaseBtn" class="text-btn" type="button">複製</button></dd></div>
+              <div><dt>收件時間</dt><dd id="receivedAt">—</dd></div>
+              <div><dt>目前狀態</dt><dd id="receiptStatus">—</dd></div>
+              <div><dt>預計審查完成</dt><dd id="reviewDue">—</dd></div>
+              <div><dt>申請標的</dt><dd id="receiptTool">—</dd></div>
+              <div><dt>預估補助金額</dt><dd id="receiptGrant">—</dd></div>
+              <div><dt>已收文件</dt><dd id="receiptDocs">—</dd></div>
+              <div><dt>尚待補正</dt><dd id="receiptMissing">—</dd></div>
+              <div><dt>承辦窗口</dt><dd id="receiptContact">—</dd></div>
+            </dl>
+
+            <p class="receipt-note">
+              預計審查完成日僅計算上班日，未扣除國定假日，實際以承辦機關通知為準。
+              本回執由示範系統產生，不具公文效力。
+            </p>
           </div>
 
-          <!-- 連不上收件伺服器時退回離線假編號。編號照樣給，但一定要講清楚沒有真的送出去，
-               否則現場會以為承辦端收到了。 -->
-          <div class="offline-notice" id="offlineNotice" hidden>
-            <span>⚠️</span>
-            <p></p>
+          <div class="receipt-actions">
+            <button class="secondary-btn" id="printBtn" type="button">列印／存成 PDF</button>
           </div>
 
           <div class="timeline-card">
-            <h3>目前進度</h3>
+            <h3>後續流程</h3>
             <div class="timeline">
               <div class="timeline-row done">
                 <span class="timeline-dot">✓</span>
                 <div>
-                  <strong>申請已送出</strong>
-                  <small>系統已完成基本資料收件</small>
+                  <strong>已收件</strong>
+                  <small>系統已記錄收件時間與案件編號</small>
                 </div>
               </div>
               <div class="timeline-row active">
                 <span class="timeline-dot"></span>
                 <div>
-                  <strong>資料審核中</strong>
-                  <small>預計由承辦人進行正式資格與文件審核</small>
+                  <strong>形式審查</strong>
+                  <small>承辦人員檢核資格與應備文件；缺件將通知限期補正</small>
                 </div>
               </div>
               <div class="timeline-row">
                 <span class="timeline-dot"></span>
                 <div>
-                  <strong>核銷確認</strong>
-                  <small>審核完成後進入核銷流程</small>
+                  <strong>核定與核銷</strong>
+                  <small>審查通過後核定補助金額並辦理核銷</small>
                 </div>
               </div>
               <div class="timeline-row">
                 <span class="timeline-dot"></span>
                 <div>
-                  <strong>補助撥款</strong>
-                  <small>完成後將由 LINE 發送通知</small>
+                  <strong>撥款</strong>
+                  <small>撥入申請人本人帳戶，並由 LINE 發送通知</small>
                 </div>
               </div>
             </div>
@@ -337,7 +638,7 @@
             <span class="line-bubble">LINE</span>
             <div>
               <strong>不用一直回來查</strong>
-              <p>狀態有更新時，由 @youthhsinchu 主動通知你。</p>
+              <p>在 LINE 上輸入案件編號即可查詢進度；狀態有更新時也會主動通知你。</p>
             </div>
           </div>
 
@@ -348,11 +649,12 @@
 
     <footer class="sticky-footer">
       <div class="footer-inner">
+        <button class="back-btn" id="backBtn" type="button" hidden>← 上一步</button>
         <div class="footer-status">
-          <span id="footerStatus">完成資安宣導後即可繼續</span>
+          <span id="footerStatus">請先閱讀申請須知並勾選同意</span>
         </div>
         <button class="primary-btn" id="nextBtn" type="button" disabled>
-          <span id="nextBtnText">繼續申請</span>
+          <span id="nextBtnText">下一步</span>
           <span>→</span>
         </button>
       </div>
