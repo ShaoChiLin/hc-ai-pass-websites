@@ -1041,6 +1041,7 @@ button { cursor: pointer; }
 .receipt-actions { margin-top:4px; }
 
 #line-binding {
+  display:block;
   margin:18px 0 0;
 }
 
