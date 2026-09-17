@@ -359,9 +359,15 @@ function validateEmail(input) {
 /* ---------------------------------------------------------------------------
  * 收件伺服器
  *
- * 這一頁是 GitHub Pages 上的靜態頁，收件的 Express 跑在承辦端的電腦上、透過 ngrok
- * 對外。ngrok 每次重開網址都會變，所以位址不能寫死：用 ?api=https://xxx.ngrok-free.app
- * 帶進來，存進 localStorage，之後回訪就不必再帶一次。
+ * 這一頁有兩種跑法，位址因此不能寫死：
+ *
+ * 1. 同源——承辦端的 Express 自己把這一頁掛在 /subsidy。頁面和 API 同一個網域同一個埠，
+ *    什麼都不必設定，開 http://localhost:3000/subsidy/ 就通。開機時探測一次就知道。
+ * 2. GitHub Pages——靜態頁在 github.io，收件的 Express 跑在承辦端電腦上、透過 ngrok 對外。
+ *    ngrok 每次重開網址都會變，所以用 ?api=https://xxx.ngrok-free.app 帶進來存在
+ *    localStorage，之後回訪就不必再帶一次。
+ *
+ * 明確設定過的值永遠優先於探測結果——使用者在「連線設定」裡打的位址不該被自動偵測蓋掉。
  * ------------------------------------------------------------------------- */
 
 const API_STORAGE_KEY = 'hc-ai-pass.apiBase';
@@ -370,12 +376,15 @@ const DRAFT_STORAGE_KEY = 'hc-ai-pass.subsidyDraft';
 /** ngrok 免費版預設會先回一頁 HTML 攔截頁（ERR_NGROK_6024），這個標頭是官方指定的跳過方式。 */
 const NGROK_HEADER = { 'ngrok-skip-browser-warning': '1' };
 
+/** 同源探測的結果。探到才填，所以 GitHub Pages 上永遠是空字串。 */
+let sameOriginBase = '';
+
 function normalizeApiBase(value) {
   const base = String(value ?? '').trim().replace(/\/+$/, '');
   return /^https?:\/\/.+/.test(base) ? base : '';
 }
 
-function readApiBase() {
+function readStoredApiBase() {
   try {
     return normalizeApiBase(localStorage.getItem(API_STORAGE_KEY));
   } catch {
@@ -384,14 +393,45 @@ function readApiBase() {
   }
 }
 
+function readApiBase() {
+  return readStoredApiBase() || sameOriginBase;
+}
+
 function saveApiBase(value) {
   const base = normalizeApiBase(value);
   try {
     if (base) localStorage.setItem(API_STORAGE_KEY, base);
     else localStorage.removeItem(API_STORAGE_KEY);
   } catch {}
+  // 使用者在「連線設定」裡留白就是要切回離線展示模式，這時連同源探測結果也要一起清掉，
+  // 否則畫面會立刻又跳回「已連線」，看起來像設定沒生效。
+  if (!base) sameOriginBase = '';
   renderApiStatus();
   return base;
+}
+
+/**
+ * 探測這一頁是不是由收件伺服器自己 serve 出來的。
+ *
+ * 只打一支唯讀的 GET，失敗就當作不是同源、安靜地留在離線模式——
+ * GitHub Pages 上這支會回 404 的 HTML，`response.json()` 會丟例外，正好被 catch 吃掉。
+ */
+async function detectSameOriginApi() {
+  if (readStoredApiBase()) return; // 已經手動設定過就不要自作聰明
+  if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
+
+  try {
+    const response = await fetch(`${location.origin}/api/applications/program`);
+    if (!response.ok) return;
+
+    const data = await response.json();
+    if (!data?.program) return;
+
+    sameOriginBase = location.origin;
+    renderApiStatus();
+  } catch {
+    // 不是同源。這是預期中的結果，不用吵使用者。
+  }
 }
 
 function renderApiStatus() {
@@ -1019,6 +1059,27 @@ async function submitApplication() {
 }
 
 function renderReceipt(data) {
+  let binding = document.getElementById('line-binding');
+  if (!binding) {
+    binding = document.createElement('div'); binding.id = 'line-binding';
+    receiptContact.parentElement.after(binding);
+  }
+  binding.replaceChildren();
+  if (data.lineBinding) {
+    const instruction = document.createElement('p');
+    instruction.textContent = '按下按鈕會開啟 LINE 官方帳號並自動填好綁定文字；請在一對一聊天室按「傳送」完成綁定（24 小時有效、限用一次，請勿轉交他人）。';
+    const code = document.createElement('code'); code.textContent = `綁定 ${data.lineBinding.code}`;
+    const open = document.createElement('a');
+    open.className = 'line-bind-btn';
+    open.href = data.lineBinding.chatUrl;
+    open.target = '_blank';
+    open.rel = 'noopener';
+    open.textContent = '用 LINE 一鍵綁定通知';
+    const copy = document.createElement('button'); copy.type = 'button'; copy.textContent = '複製 LINE 綁定文字';
+    copy.className = 'line-bind-copy';
+    copy.addEventListener('click', () => navigator.clipboard.writeText(code.textContent).then(() => showToast('已複製，請貼到官方帳號聊天室')).catch(() => showToast('請手動選取並複製綁定文字')));
+    binding.append(instruction, open, code, copy);
+  }
   receiptProgram.textContent = state.meta.program.name;
   caseNumber.textContent = data.caseCode;
   receivedAt.textContent = formatDateTime(data.receivedAt);
@@ -1455,7 +1516,10 @@ restoreDraft();
 renderUploadList();
 syncFromDom();
 updateStepper();
-loadProgram();
+
+// 先探同源再拿計畫資訊：順序反過來的話，第一次載入會先用內建資料畫一次、
+// 再跳一個「連不上收件伺服器」的 toast，而其實是連得上的。
+detectSameOriginApi().then(loadProgram);
 
 // 表單還原有時候發生在這支腳本跑完之後，所以 pageshow 要再同步一次。
 // 它在一般載入與上一頁返回（bfcache）都會觸發，兩種情況一起收掉。

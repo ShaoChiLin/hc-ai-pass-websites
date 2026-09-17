@@ -1040,6 +1040,36 @@ button { cursor: pointer; }
 
 .receipt-actions { margin-top:4px; }
 
+#line-binding {
+  display:grid;
+  gap:10px;
+  margin:18px 0 0;
+  padding:18px;
+  border:1px solid #B8E8C9;
+  border-radius:16px;
+  background:#F0FBF4;
+}
+
+#line-binding p { margin:0; color:var(--navy); line-height:1.65; }
+#line-binding code { overflow-wrap:anywhere; color:var(--muted); font-size:12px; }
+
+.line-bind-btn {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:50px;
+  padding:0 18px;
+  border-radius:14px;
+  color:white;
+  background:#06C755;
+  box-shadow:0 10px 22px rgba(6,199,85,.2);
+  font-weight:800;
+  text-decoration:none;
+}
+
+.line-bind-btn:hover { background:#05B84E; }
+.line-bind-copy { justify-self:start; border:0; color:var(--blue); background:transparent; font-weight:800; }
+
 .text-btn {
   border:0;
   color:var(--blue);
