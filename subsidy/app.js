@@ -1066,19 +1066,20 @@ function renderReceipt(data) {
   }
   binding.replaceChildren();
   if (data.lineBinding) {
-    const instruction = document.createElement('p');
-    instruction.textContent = '按下按鈕會開啟 LINE 官方帳號並自動填好綁定文字；請在一對一聊天室按「傳送」完成綁定（24 小時有效、限用一次，請勿轉交他人）。';
-    const code = document.createElement('code'); code.textContent = `綁定 ${data.lineBinding.code}`;
     const open = document.createElement('a');
     open.className = 'line-bind-btn';
     open.href = data.lineBinding.chatUrl;
-    open.target = '_blank';
-    open.rel = 'noopener';
     open.textContent = '用 LINE 一鍵綁定通知';
-    const copy = document.createElement('button'); copy.type = 'button'; copy.textContent = '複製 LINE 綁定文字';
-    copy.className = 'line-bind-copy';
-    copy.addEventListener('click', () => navigator.clipboard.writeText(code.textContent).then(() => showToast('已複製，請貼到官方帳號聊天室')).catch(() => showToast('請手動選取並複製綁定文字')));
-    binding.append(instruction, open, code, copy);
+    open.setAttribute('aria-label', '用手機 LINE 開啟官方帳號並綁定審核通知');
+    open.addEventListener('click', (event) => {
+      // LINE 官方的 oaMessage 網址只保證支援 iOS／Android。桌機瀏覽器會導到官網，
+      // 看起來像按鈕壞掉；直接留在原頁說明限制，避免遺失只能顯示一次的綁定碼。
+      if (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+        event.preventDefault();
+        showToast('LINE 一鍵綁定僅支援手機，請用手機開啟這個申請頁。');
+      }
+    });
+    binding.append(open);
   }
   receiptProgram.textContent = state.meta.program.name;
   caseNumber.textContent = data.caseCode;
