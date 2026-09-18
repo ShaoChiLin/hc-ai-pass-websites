@@ -81,6 +81,13 @@ const state = {
   draftId: '',
   /** 已上傳的檔案，key 是 docType。 */
   files: {},
+  /**
+   * 品質預檢沒過、正在等使用者決定的檔案，key 是 docType。
+   *
+   * 裡面有 File 物件，所以刻意不進 saveDraft()——草稿是 JSON，塞不下檔案，
+   * 而且使用者關掉頁面後本來就該重選一次檔，不該默默留著一張被質疑過的照片。
+   */
+  quality: {},
   submitting: false,
 };
 
@@ -829,8 +836,9 @@ function renderUploadList() {
     .map((doc) => {
       const file = state.files[doc.docType];
       const done = Boolean(file);
+      const flagged = state.quality[doc.docType];
       return `
-        <div class="upload-item ${done ? 'ok' : ''}" data-doc="${escapeHtml(doc.docType)}">
+        <div class="upload-item ${done ? 'ok' : ''} ${flagged ? 'flagged' : ''}" data-doc="${escapeHtml(doc.docType)}">
           <div class="upload-copy">
             <strong>${escapeHtml(doc.label)}</strong>
             <span class="doc-tag">${doc.required ? '必備' : '低收／中低收適用'}</span>
@@ -838,11 +846,19 @@ function renderUploadList() {
             ${done
               ? `<div class="upload-file">📄 ${escapeHtml(file.displayName)}　${formatBytes(file.size)}</div>`
               : ''}
+            ${flagged
+              ? `<div class="upload-warning">
+                   <strong>⚠️ ${escapeHtml(flagged.verdict.message)}</strong>
+                   <small>${escapeHtml(flagged.verdict.hint)}</small>
+                   <small class="upload-warning-file">選到的檔案：${escapeHtml(flagged.file.name)}　${formatBytes(flagged.file.size)}</small>
+                   <button class="text-btn upload-anyway" type="button">這張沒問題，仍要上傳</button>
+                 </div>`
+              : ''}
             <div class="upload-error" hidden></div>
           </div>
           <div class="upload-actions">
             <label class="ghost-btn upload-pick">
-              ${done ? '重新上傳' : '選擇檔案'}
+              ${flagged ? '重新選擇' : done ? '重新上傳' : '選擇檔案'}
               <input type="file" accept="image/jpeg,image/png,application/pdf" hidden>
             </label>
             ${done ? '<button class="text-btn upload-remove" type="button">移除</button>' : ''}
@@ -859,6 +875,14 @@ function renderUploadList() {
       if (file) uploadDocument(docType, file, item);
     });
     item.querySelector('.upload-remove')?.addEventListener('click', () => removeDocument(docType));
+    item.querySelector('.upload-anyway')?.addEventListener('click', () => {
+      const flagged = state.quality[docType];
+      if (!flagged) return;
+      delete state.quality[docType];
+      renderUploadList();
+      const target = uploadList.querySelector(`.upload-item[data-doc="${CSS.escape(docType)}"]`);
+      sendDocument(docType, flagged.file, target);
+    });
   });
 }
 
@@ -886,10 +910,19 @@ async function ensureDraft(base) {
   return state.draftId;
 }
 
+/**
+ * 使用者選了一個檔案。先擋掉一定不會成功的，再做品質預檢，最後才送出。
+ *
+ * 品質預檢只回答「這張圖能不能看」（太小、全黑、糊掉），回答不了
+ * 「這是不是正確的文件」——那要文字辨識才知道。所以它的結果是提示而非否決：
+ * 使用者按「仍要上傳」就會照送，因為誤判一定會發生，而擋掉一份合法申請
+ * 比讓承辦人多看一張照片嚴重得多。
+ */
 async function uploadDocument(docType, file, item) {
-  const base = readApiBase();
   showUploadError(item, '');
+  delete state.quality[docType];
 
+  const base = readApiBase();
   if (!base) {
     showUploadError(item, '尚未連線到收件伺服器，無法上傳。可先送出，文件之後再補。');
     return;
@@ -900,6 +933,20 @@ async function uploadDocument(docType, file, item) {
     showUploadError(item, `單一檔案不得超過 ${Math.round(maxBytes / 1024 / 1024)} MB。`);
     return;
   }
+
+  const verdict = await UploadImageCheck.inspect(file);
+  if (!verdict.ok) {
+    state.quality[docType] = { file, verdict };
+    renderUploadList();
+    return;
+  }
+
+  sendDocument(docType, file, item);
+}
+
+async function sendDocument(docType, file, item) {
+  const base = readApiBase();
+  if (!base || !item) return;
 
   const buffer = await file.arrayBuffer();
   // 先在本機比對檔頭。送出去才被退回的話，使用者要等一趟網路來回才知道選錯檔。
@@ -950,6 +997,7 @@ async function removeDocument(docType) {
   if (!file) return;
 
   delete state.files[docType];
+  delete state.quality[docType];
   renderUploadList();
   updateFooter();
   saveDraft();

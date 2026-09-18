@@ -893,6 +893,25 @@ button { cursor: pointer; }
   overflow-wrap:anywhere;
 }
 
+/* 品質預檢沒過。用琥珀色不用紅色——這是提示，使用者仍然可以選擇上傳。 */
+.upload-item.flagged { border-color:rgba(245,166,35,.45); background:rgba(245,166,35,.06); }
+
+.upload-warning {
+  margin-top:8px;
+  padding:11px 12px;
+  display:grid;
+  gap:4px;
+  justify-items:start;
+  border-radius:10px;
+  border:1px solid rgba(245,166,35,.35);
+  background:rgba(255,255,255,.8);
+}
+
+.upload-warning strong { font-size:13px; color:#8A5A00; line-height:1.5; }
+.upload-warning small { font-size:12.5px; }
+.upload-warning-file { overflow-wrap:anywhere; }
+.upload-warning .upload-anyway { margin-top:2px; font-size:12.5px; }
+
 .upload-error {
   margin-top:6px;
   color:var(--danger);
