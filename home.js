@@ -8,7 +8,10 @@
   const close = document.querySelector('#close');
   const backdrop = document.querySelector('#portal-backdrop');
   const title = document.querySelector('#services-title');
-  const subsidy = document.querySelector('#subsidy-link');
+  // The focus trap cycles between the close button and the last service card,
+  // so it must follow the card list rather than a single hard-coded link.
+  const cards = document.querySelectorAll('.service-card');
+  const lastCard = cards[cards.length - 1];
   const background = document.querySelectorAll('.site-header, .hero-copy, .site-footer, .skip-link');
   let opened = false;
   let returnFocus = enter;
@@ -39,7 +42,8 @@
 
   function layout() {
     const width = Math.min(760, window.innerWidth - 32);
-    const height = Math.min(500, window.innerHeight - 60);
+    // Taller than the single-entry layout so all three service cards fit without scrolling.
+    const height = Math.min(600, window.innerHeight - 60);
     body.style.setProperty('--panel-width', `${width}px`);
     body.style.setProperty('--panel-height', `${height}px`);
     if (opened) {
@@ -131,11 +135,11 @@
     document.addEventListener('keydown', event => {
       if (!opened) return;
       if (event.key === 'Escape') dismiss();
-      if (event.key === 'Tab') {
+      if (event.key === 'Tab' && lastCard) {
         const focus = document.activeElement;
         if (event.shiftKey && (focus === close || focus === title)) {
-          event.preventDefault(); subsidy.focus();
-        } else if (!event.shiftKey && focus === subsidy) {
+          event.preventDefault(); lastCard.focus();
+        } else if (!event.shiftKey && focus === lastCard) {
           event.preventDefault(); close.focus();
         }
       }
