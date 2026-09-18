@@ -1,0 +1,2 @@
+# macOS Finder 會在每個資料夾留下這個檔，沒有它 `git add -A` 會把它一起收進去。
+.DS_Store

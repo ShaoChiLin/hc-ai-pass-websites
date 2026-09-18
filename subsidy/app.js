@@ -360,19 +360,34 @@ function validateEmail(input) {
 /* ---------------------------------------------------------------------------
  * 收件伺服器
  *
- * 這一頁有兩種跑法，位址因此不能寫死：
+ * 這一頁有三種跑法，優先序由高到低：
  *
- * 1. 同源——承辦端的 Express 自己把這一頁掛在 /subsidy。頁面和 API 同一個網域同一個埠，
+ * 1. 手動設定——使用者在「連線設定」裡打過的位址，或網址帶了 ?api=。存在 localStorage。
+ *    這一項永遠最優先：人明確講過的話，不該被任何自動偵測蓋掉。
+ * 2. 同源——承辦端的 Express 自己把這一頁掛在 /subsidy。頁面和 API 同一個網域同一個埠，
  *    什麼都不必設定，開 http://localhost:3000/subsidy/ 就通。開機時探測一次就知道。
- * 2. GitHub Pages——靜態頁在 github.io，收件的 Express 跑在承辦端電腦上、透過 ngrok 對外。
- *    ngrok 每次重開網址都會變，所以用 ?api=https://xxx.ngrok-free.app 帶進來存在
- *    localStorage，之後回訪就不必再帶一次。
+ * 3. 預設位址（DEFAULT_API_BASE）——GitHub Pages 上的退路。靜態頁在 github.io，
+ *    收件的 Express 跑在承辦端電腦上、透過 ngrok 對外，兩者不同源，探測探不到。
+ *    以前這種情況只能停在離線模式、等使用者自己去設定，現在直接連預設位址。
  *
- * 明確設定過的值永遠優先於探測結果——使用者在「連線設定」裡打的位址不該被自動偵測蓋掉。
+ * 為什麼現在敢寫一個預設值：ngrok 免費帳號可以領一個**固定不變**的網址
+ * （`ngrok http --url=<固定網址> 3000`）。舊的隨機網址每次重開都變，寫死只會過期得更難查；
+ * 固定網址就沒有這個問題。要換後端位址時只改下面那一行，不必動其他地方。
  * ------------------------------------------------------------------------- */
 
 const API_STORAGE_KEY = 'hc-ai-pass.apiBase';
 const DRAFT_STORAGE_KEY = 'hc-ai-pass.subsidyDraft';
+
+/**
+ * 找不到同源 API 時要連的位址。留空字串就是關掉這個行為、回到舊的「停在離線模式」。
+ *
+ * 這必須是 ngrok 的**固定**網址，不是每次重開都變的那種隨機字串。
+ * 後端的 ALLOWED_ORIGINS 也要含 github.io，否則瀏覽器會擋在 CORS。
+ */
+const DEFAULT_API_BASE = '';
+
+/** localStorage 裡代表「使用者明確要離線展示」的哨兵值。見 saveApiBase()。 */
+const OFFLINE_SENTINEL = 'offline';
 
 /** ngrok 免費版預設會先回一頁 HTML 攔截頁（ERR_NGROK_6024），這個標頭是官方指定的跳過方式。 */
 const NGROK_HEADER = { 'ngrok-skip-browser-warning': '1' };
@@ -380,32 +395,69 @@ const NGROK_HEADER = { 'ngrok-skip-browser-warning': '1' };
 /** 同源探測的結果。探到才填，所以 GitHub Pages 上永遠是空字串。 */
 let sameOriginBase = '';
 
+/**
+ * 同源探測跑完了沒。
+ *
+ * 在探完之前不要讓 DEFAULT_API_BASE 生效：不然本機開 localhost:3000/subsidy/ 時，
+ * 狀態列會先閃一下遠端的 ngrok 位址再跳回 localhost，看起來像連錯地方。
+ */
+let sameOriginChecked = false;
+
 function normalizeApiBase(value) {
   const base = String(value ?? '').trim().replace(/\/+$/, '');
   return /^https?:\/\/.+/.test(base) ? base : '';
 }
 
-function readStoredApiBase() {
+function readStoredValue() {
   try {
-    return normalizeApiBase(localStorage.getItem(API_STORAGE_KEY));
+    return String(localStorage.getItem(API_STORAGE_KEY) ?? '').trim();
   } catch {
-    // 無痕模式可能讀不到 localStorage。這時只是回到離線模式，不該讓整頁壞掉。
+    // 無痕模式可能讀不到 localStorage。這時只是當作沒設定過，不該讓整頁壞掉。
     return '';
   }
 }
 
-function readApiBase() {
-  return readStoredApiBase() || sameOriginBase;
+/** 使用者是不是明確選了離線展示模式。 */
+function isExplicitlyOffline() {
+  return readStoredValue() === OFFLINE_SENTINEL;
 }
 
+function readStoredApiBase() {
+  return normalizeApiBase(readStoredValue());
+}
+
+function readApiBase() {
+  if (isExplicitlyOffline()) return '';
+
+  const stored = readStoredApiBase();
+  if (stored) return stored;
+  if (sameOriginBase) return sameOriginBase;
+
+  return sameOriginChecked ? DEFAULT_API_BASE : '';
+}
+
+/**
+ * 保存「連線設定」的結果。
+ *
+ * 留白的語意是「我要離線展示」，而不是「清掉設定回到自動」——所以存一個哨兵值，
+ * 不是把 key 刪掉。刪掉的話下次載入就會落回 DEFAULT_API_BASE 自動連上，
+ * 使用者會覺得設定沒生效。想回到自動的人在同一個對話框輸入 auto。
+ */
 function saveApiBase(value) {
-  const base = normalizeApiBase(value);
+  const raw = String(value ?? '').trim();
+
+  if (raw.toLowerCase() === 'auto') {
+    try { localStorage.removeItem(API_STORAGE_KEY); } catch {}
+    renderApiStatus();
+    return readApiBase();
+  }
+
+  const base = normalizeApiBase(raw);
   try {
     if (base) localStorage.setItem(API_STORAGE_KEY, base);
-    else localStorage.removeItem(API_STORAGE_KEY);
+    else localStorage.setItem(API_STORAGE_KEY, OFFLINE_SENTINEL);
   } catch {}
-  // 使用者在「連線設定」裡留白就是要切回離線展示模式，這時連同源探測結果也要一起清掉，
-  // 否則畫面會立刻又跳回「已連線」，看起來像設定沒生效。
+  // 選了離線就連同源探測結果也要一起清掉，否則畫面會立刻又跳回「已連線」。
   if (!base) sameOriginBase = '';
   renderApiStatus();
   return base;
@@ -414,14 +466,17 @@ function saveApiBase(value) {
 /**
  * 探測這一頁是不是由收件伺服器自己 serve 出來的。
  *
- * 只打一支唯讀的 GET，失敗就當作不是同源、安靜地留在離線模式——
+ * 只打一支唯讀的 GET，失敗就當作不是同源、安靜地往下一層退——
  * GitHub Pages 上這支會回 404 的 HTML，`response.json()` 會丟例外，正好被 catch 吃掉。
+ *
+ * 不論走哪條路徑都要把 sameOriginChecked 設起來（所以用 finally），
+ * 否則 DEFAULT_API_BASE 永遠不會生效。
  */
 async function detectSameOriginApi() {
-  if (readStoredApiBase()) return; // 已經手動設定過就不要自作聰明
-  if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
-
   try {
+    if (readStoredValue()) return; // 已經明確設定過（含離線）就不要自作聰明
+    if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
+
     const response = await fetch(`${location.origin}/api/applications/program`);
     if (!response.ok) return;
 
@@ -429,9 +484,11 @@ async function detectSameOriginApi() {
     if (!data?.program) return;
 
     sameOriginBase = location.origin;
-    renderApiStatus();
   } catch {
     // 不是同源。這是預期中的結果，不用吵使用者。
+  } finally {
+    sameOriginChecked = true;
+    renderApiStatus();
   }
 }
 
@@ -1361,13 +1418,14 @@ if (apiFromUrl !== null) {
 
 apiConfigBtn.addEventListener('click', () => {
   const input = prompt(
-    '收件伺服器位址（例：https://xxxx.ngrok-free.app）。\n留空則改用離線展示模式。',
+    '收件伺服器位址（例：https://xxxx.ngrok-free.app）。\n'
+      + '留空＝離線展示模式；輸入 auto ＝ 回到自動連線。',
     readApiBase(),
   );
   if (input === null) return;
 
   const saved = saveApiBase(input);
-  showToast(saved ? '已設定收件伺服器' : '已切回離線展示模式');
+  showToast(saved ? `已連線：${saved.replace(/^https?:\/\//, '')}` : '已切回離線展示模式');
   // 換了伺服器就要重新拿計畫資訊，而且舊的上傳草稿在新伺服器上不存在。
   state.draftId = '';
   state.files = {};

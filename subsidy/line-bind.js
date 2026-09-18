@@ -48,12 +48,23 @@ function normalizeApiBase(value) {
 }
 
 /**
- * API 位址。優先用收件頁傳過來的 `?api=`，否則當作本頁就是伺服器自己 serve 的（同源）。
+ * 找不到 API 位址時的退路。**要和 app.js 的 DEFAULT_API_BASE 保持一致。**
  *
- * 這兩種情況都會真的發生：LIFF endpoint 指到 ngrok 時是同源，指到 GitHub Pages 時不是。
- * 兩邊都要能跑，換 endpoint 才不必改程式。
+ * 兩支腳本各自獨立載入、沒有共用模組，所以這個值只能抄一份。改一邊就要改另一邊。
  */
-const apiBase = normalizeApiBase(params.get('api')) || location.origin;
+const DEFAULT_API_BASE = '';
+
+/**
+ * API 位址。優先用收件頁傳過來的 `?api=`；沒有就看本頁是不是伺服器自己 serve 的（同源）；
+ * 再不然用預設位址。
+ *
+ * 前兩種情況都會真的發生：LIFF endpoint 指到 ngrok 時是同源，指到 GitHub Pages 時不是。
+ * 第三層是為了 endpoint 設在 GitHub Pages、而網址又不知怎麼掉了 `?api=` 的情況——
+ * 那時 location.origin 是 github.io，打過去只會拿到 404 的 HTML。
+ */
+const apiBase = normalizeApiBase(params.get('api'))
+  || (location.hostname.endsWith('.github.io') ? DEFAULT_API_BASE : location.origin)
+  || location.origin;
 const token = String(params.get('token') ?? '').trim();
 
 function render(title, text, buttons = []) {
