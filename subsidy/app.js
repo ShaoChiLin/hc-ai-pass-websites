@@ -426,6 +426,11 @@ function readStoredApiBase() {
   return normalizeApiBase(readStoredValue());
 }
 
+/** 丟掉存起來的位址，讓解析退回同源探測或 DEFAULT_API_BASE。見 loadProgram() 的退場邏輯。 */
+function clearStoredApiBase() {
+  try { localStorage.removeItem(API_STORAGE_KEY); } catch {}
+}
+
 function readApiBase() {
   if (isExplicitlyOffline()) return '';
 
@@ -503,6 +508,12 @@ function renderApiStatus() {
  * 計畫資訊
  * ------------------------------------------------------------------------- */
 
+/**
+ * 已經因為連不上而退回 DEFAULT_API_BASE 了沒。用來擋住無限重試——
+ * 退回之後若連預設位址也不通，就老實顯示離線，不要再繞回來。
+ */
+let fellBackToDefault = false;
+
 async function loadProgram() {
   const base = readApiBase();
   if (!base) {
@@ -518,7 +529,22 @@ async function loadProgram() {
     state.meta = { program: data.program, documents: data.documents, upload: data.upload };
     state.today = data.today || '';
     state.metaFromServer = true;
+    // 連上了就把旗標放掉，之後換伺服器還能再退一次。
+    fellBackToDefault = false;
   } catch (error) {
+    // 存在 localStorage 的位址過期，是這個 demo 最常見的狀況：ngrok 的隨機網址一重開
+    // 就死，但設定還留在瀏覽器裡，而且它的優先序最高，會一路蓋掉固定網址——狀態列
+    // 還會顯示「已連線：<那個死掉的網址>」。所以這裡不能只是退回離線資料，要把過期
+    // 的設定清掉、改用預設位址再試一次。使用者真的想指定別台，重設一次即可。
+    const stored = readStoredApiBase();
+    if (!fellBackToDefault && DEFAULT_API_BASE && stored && stored === base) {
+      fellBackToDefault = true;
+      clearStoredApiBase();
+      renderApiStatus();
+      showToast('原本設定的伺服器連不上，已改用預設位址');
+      return loadProgram();
+    }
+
     // 拿不到就用內建的那份。這時候畫面上的數字可能和承辦端不一致，所以講出來。
     console.warn('取得計畫資訊失敗，改用內建資料：', error.message);
     showToast('連不上收件伺服器，改用離線資料顯示');
