@@ -633,6 +633,38 @@ button { cursor: pointer; }
 
 .field-wide { margin-top: 14px; }
 
+/* 展示用遮蔽層（demo-mask.js）。等寬字型是必要的：遮蔽字串和真正的文字
+   必須每個字元同寬，游標位置才不會和畫面上的 * 對不起來。 */
+.mask-wrap { position: relative; display: block; }
+
+.mask-wrap input,
+.mask-wrap .mask-overlay {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 16px;
+  font-weight: 400;
+  letter-spacing: .06em;
+}
+
+.mask-wrap input { display: block; }
+
+.mask-wrap.is-masked input {
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  caret-color: var(--blue);
+}
+
+.mask-wrap .mask-overlay {
+  position: absolute;
+  inset: 0;
+  /* 15px = input 的 14px padding 加上 1px 邊框，讓兩層文字的起點重合。 */
+  padding: 0 15px;
+  line-height: 50px;
+  white-space: pre;
+  overflow: hidden;
+  pointer-events: none;
+  border-radius: 14px;
+}
+
 /* .field span 的權重比單一 class 高，不寫成這樣的話標題裡的星號會被它蓋掉。 */
 .req-mark,
 .field span .req-mark,
