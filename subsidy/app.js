@@ -384,7 +384,7 @@ const DRAFT_STORAGE_KEY = 'hc-ai-pass.subsidyDraft';
  * 這必須是 ngrok 的**固定**網址，不是每次重開都變的那種隨機字串。
  * 後端的 ALLOWED_ORIGINS 也要含 github.io，否則瀏覽器會擋在 CORS。
  */
-const DEFAULT_API_BASE = '';
+const DEFAULT_API_BASE = 'https://swipe-establish-earthling.ngrok-free.dev';
 
 /** localStorage 裡代表「使用者明確要離線展示」的哨兵值。見 saveApiBase()。 */
 const OFFLINE_SENTINEL = 'offline';

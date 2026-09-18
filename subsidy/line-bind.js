@@ -52,7 +52,7 @@ function normalizeApiBase(value) {
  *
  * 兩支腳本各自獨立載入、沒有共用模組，所以這個值只能抄一份。改一邊就要改另一邊。
  */
-const DEFAULT_API_BASE = '';
+const DEFAULT_API_BASE = 'https://swipe-establish-earthling.ngrok-free.dev';
 
 /**
  * API 位址。優先用收件頁傳過來的 `?api=`；沒有就看本頁是不是伺服器自己 serve 的（同源）；
