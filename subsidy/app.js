@@ -123,6 +123,7 @@ const eligibilityFailures = $('eligibilityFailures');
 // Step 3
 const video = $('awarenessVideo');
 const videoPlaceholder = $('videoPlaceholder');
+const videoFreeze = $('videoFreeze');
 const demoPlayBtn = $('demoPlayBtn');
 const watchTimer = $('watchTimer');
 const watchProgress = $('watchProgress');
@@ -1068,18 +1069,48 @@ function renderReceipt(data) {
   if (data.lineBinding) {
     const open = document.createElement('a');
     open.className = 'line-bind-btn';
-    open.href = data.lineBinding.chatUrl;
-    open.textContent = '用 LINE 一鍵綁定通知';
-    open.setAttribute('aria-label', '用手機 LINE 開啟官方帳號並綁定審核通知');
-    open.addEventListener('click', (event) => {
-      // LINE 官方的 oaMessage 網址只保證支援 iOS／Android。桌機瀏覽器會導到官網，
-      // 看起來像按鈕壞掉；直接留在原頁說明限制，避免遺失只能顯示一次的綁定碼。
-      if (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
-        event.preventDefault();
-        showToast('LINE 一鍵綁定僅支援手機，請用手機開啟這個申請頁。');
-      }
-    });
-    binding.append(open);
+
+    if (data.lineBinding.liffId) {
+      /*
+       * LIFF 路徑：真正的一鍵綁定，桌機與手機都走得完。
+       *
+       * 手機上 liff.line.me 會直接叫起 LINE App 的內建瀏覽器，桌機則在瀏覽器裡跑一次
+       * LINE Login。兩邊拿到的是同一組 userId，所以不必再請使用者傳訊息給官方帳號。
+       *
+       * api 參數要帶：LIFF 的 Endpoint URL 是寫死在 LINE 後台的，不保證和收件頁同源
+       * （endpoint 設 GitHub Pages、後端在 ngrok 時就不同源）。帶著走，綁定頁才知道
+       * 該打哪一台伺服器。
+       */
+      const url = new URL(`https://liff.line.me/${encodeURIComponent(data.lineBinding.liffId)}`);
+      url.searchParams.set('token', data.lineBinding.code);
+      const base = readApiBase();
+      if (base) url.searchParams.set('api', base);
+      open.href = url.toString();
+      open.textContent = '用 LINE 一鍵綁定通知';
+      open.setAttribute('aria-label', '用 LINE 一鍵綁定審核通知');
+      binding.append(open);
+
+      // 退路。現場 LIFF 若出狀況（設定跑掉、LINE 的 CDN 不通），還有舊的聊天室綁定可用。
+      // 綁定碼只顯示這一次，錯過就得重送一份申請，所以這條路要留著。
+      const fallback = document.createElement('a');
+      fallback.className = 'line-bind-fallback';
+      fallback.href = data.lineBinding.chatUrl;
+      fallback.textContent = '一鍵綁定沒反應？改用聊天室綁定（限手機）';
+      binding.append(fallback);
+    } else {
+      open.href = data.lineBinding.chatUrl;
+      open.textContent = '用 LINE 一鍵綁定通知';
+      open.setAttribute('aria-label', '用手機 LINE 開啟官方帳號並綁定審核通知');
+      open.addEventListener('click', (event) => {
+        // LINE 官方的 oaMessage 網址只保證支援 iOS／Android。桌機瀏覽器會導到官網，
+        // 看起來像按鈕壞掉；直接留在原頁說明限制，避免遺失只能顯示一次的綁定碼。
+        if (!/Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) {
+          event.preventDefault();
+          showToast('LINE 一鍵綁定僅支援手機，請用手機開啟這個申請頁。');
+        }
+      });
+      binding.append(open);
+    }
   }
   receiptProgram.textContent = state.meta.program.name;
   caseNumber.textContent = data.caseCode;
@@ -1410,11 +1441,51 @@ video.addEventListener('timeupdate', () => {
   }
 });
 
+/**
+ * 播完之後把畫面凍在最後一幀。
+ *
+ * 為什麼不直接靠 <video> 自己：規格沒有規定播完要留在哪一幀，各家做法不一樣。
+ * Chrome 多半會留住，iOS Safari 退出全螢幕後常常回到第一幀或直接變黑，
+ * 而只要有任何一段程式碼碰到 `currentTime = 0`（例如「重新填寫」）就會跳回開頭。
+ * 把那一幀畫進 canvas 蓋上去，就跟播放器的行為完全脫鉤了。
+ *
+ * 影片是同源檔案，canvas 不會被污染，`drawImage` 不會丟 SecurityError；
+ * 真的失敗（例如編碼器還沒吐出畫面）就安靜放棄，不要讓宣導頁因此壞掉。
+ */
+function freezeLastFrame() {
+  const width = video.videoWidth;
+  const height = video.videoHeight;
+  if (!width || !height) return;
+
+  videoFreeze.width = width;
+  videoFreeze.height = height;
+
+  try {
+    videoFreeze.getContext('2d').drawImage(video, 0, 0, width, height);
+  } catch {
+    return;
+  }
+  videoFreeze.hidden = false;
+}
+
+function clearFreezeFrame() {
+  videoFreeze.hidden = true;
+}
+
+// 定格畫面蓋住了瀏覽器自己的控制列，所以它要自己收下點擊——按一下收起來，
+// 控制列就回來了。不順手替使用者按播放：宣導影片重播與否由他決定。
+videoFreeze.addEventListener('click', clearFreezeFrame);
+
+// 使用者從控制列按播放（或拖動進度條）時，定格畫面要立刻讓開。
+video.addEventListener('play', clearFreezeFrame);
+video.addEventListener('seeking', clearFreezeFrame);
+
 video.addEventListener('ended', () => {
   if (!state.watchComplete && video.duration < REQUIRED_WATCH_SECONDS) {
     state.watchedSeconds = REQUIRED_WATCH_SECONDS;
     renderWatchProgress();
   }
+  freezeLastFrame();
 });
 
 demoPlayBtn.addEventListener('click', () => {
@@ -1500,6 +1571,7 @@ restartBtn.addEventListener('click', () => {
   watchProgress.style.width = '0%';
   submitError.hidden = true;
 
+  clearFreezeFrame();
   try { video.currentTime = 0; } catch {}
 
   syncFromDom();

@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <meta name="robots" content="noindex" />
+  <title>綁定 LINE 審核通知｜竹青 AI 安心辦</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="./styles.css?v=20260918-liff-b" />
+  <!--
+    LIFF SDK。這是整個網站除了 Google Fonts 以外唯一的外部資源，只有這一頁載入——
+    七步申請流程本身不依賴它，LINE 的 CDN 掛掉也不會影響收件。
+  -->
+  <script src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+</head>
+<body>
+  <main class="bind-shell">
+    <div class="bind-card">
+      <p class="bind-brand">竹青 AI 安心辦</p>
+      <h1 class="bind-title" id="bind-title">正在綁定 LINE 通知</h1>
+      <p class="bind-text" id="bind-text">請稍候，正在確認你的 LINE 帳號…</p>
+
+      <div class="bind-actions" id="bind-actions" hidden></div>
+
+      <p class="bind-note">
+        綁定後，審核結果會由「竹青 AI 安心辦」官方帳號主動通知你。
+        本頁為黑客松展示系統，非新竹市政府正式服務。
+      </p>
+    </div>
+  </main>
+
+  <script src="./line-bind.js?v=20260918-liff-b"></script>
+</body>
+</html>

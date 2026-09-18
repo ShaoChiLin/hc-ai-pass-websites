@@ -11,7 +11,7 @@
   <!-- ?v= 是給 GitHub Pages 用的。它對靜態檔會回 max-age=600，改版後十分鐘內回訪的人
        會拿到「新的 index.html ＋ 快取裡的舊 app.js」：畫面是新的七步流程，跑的卻是舊的
        三步程式，第一頁勾完同意事項按鈕照樣反灰。每次改這兩支檔就把日期一起改掉。 -->
-  <link rel="stylesheet" href="./styles.css?v=20260917-line-bind-c" />
+  <link rel="stylesheet" href="./styles.css?v=20260918-video-a" />
 </head>
 <body>
   <div class="app-shell">
@@ -264,15 +264,25 @@
         <div class="video-card">
           <div class="video-frame" id="videoFrame">
             <video id="awarenessVideo" playsinline preload="metadata" controls>
-              <source src="./assets/security-awareness.mp4" type="video/mp4">
+              <source src="./assets/security-awareness.mp4?v=20260918-a" type="video/mp4">
             </video>
 
             <div class="video-placeholder" id="videoPlaceholder">
               <div class="placeholder-mascot">🧭</div>
               <div class="placeholder-title">AI 資安宣導影片</div>
-              <div class="placeholder-copy">請把你們的影片命名為<br><strong>security-awareness.mp4</strong><br>放進 assets 資料夾</div>
+              <div class="placeholder-copy">影片載入失敗（找不到 <strong>assets/security-awareness.mp4</strong>，或網路中斷）。<br>可以先用下面的計時完成這一步。</div>
               <button class="ghost-btn" id="demoPlayBtn" type="button">沒有影片？使用 20 秒 Demo 計時</button>
             </div>
+
+            <!--
+              播完之後蓋在影片上的「最後一幀」。<video> 自己播完會停在哪一幀，各家瀏覽器
+              並不一致（iOS Safari 退出全螢幕後可能回到第一幀或變黑），所以不靠它——
+              ended 時把當下畫面畫進這張 canvas，直接蓋住，畫面就一定凍在那裡。
+
+              位置要排在 placeholder 之後：兩個都是 position:absolute 且沒有 z-index，
+              疊放順序就看 DOM 先後，排前面會被 placeholder 蓋掉。
+            -->
+            <canvas class="video-freeze" id="videoFreeze" hidden></canvas>
           </div>
 
           <div class="watch-status">
@@ -666,6 +676,6 @@
 
   <div class="toast" id="toast"></div>
 
-  <script src="./app.js?v=20260917-line-bind-c"></script>
+  <script src="./app.js?v=20260918-video-a"></script>
 </body>
 </html>

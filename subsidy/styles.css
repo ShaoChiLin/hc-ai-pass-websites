@@ -361,11 +361,32 @@ button { cursor: pointer; }
 }
 
 .video-frame video {
+  /*
+    display:block 不是裝飾。<video> 預設是 inline，會坐在文字基線上，底下多出約
+    4.5px 的下伸部空間，把 .video-frame 從 aspect-ratio 算出的 640px 撐成 644.5px，
+    留一條露出背景漸層的細縫。改成 block 之後外框、影片、定格 canvas 三者尺寸一致。
+  */
+  display: block;
   width: 100%;
   height: 100%;
   object-fit: cover;
   background: #0C1129;
 }
+
+/*
+  播完之後的定格畫面。它蓋住整個播放器，包含瀏覽器自己畫的控制列，所以要自己
+  收下點擊：按一下就收起來，把控制列還給使用者（想重看的人按第二下播放）。
+*/
+.video-freeze {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  cursor: pointer;
+}
+
+.video-freeze[hidden] { display: none; }
 
 .video-placeholder {
   position: absolute;
@@ -1061,6 +1082,89 @@ button { cursor: pointer; }
 }
 
 .line-bind-btn:hover { background:#05B84E; }
+
+/* LIFF 出狀況時的退路連結。刻意做得比主按鈕弱很多——它不該和一鍵綁定搶注意力。 */
+.line-bind-fallback {
+  display:block;
+  margin-top:10px;
+  color:var(--muted, #667);
+  font-size:.82rem;
+  text-align:center;
+  text-decoration:underline;
+}
+
+/* ---------------------------------------------------------------------------
+ * LIFF 綁定頁（line-bind.html）
+ *
+ * 這一頁多半在 LINE App 的內建瀏覽器裡開，畫面很窄而且只有一件事要做，
+ * 所以不沿用申請頁的多欄版面，單獨給一組置中的卡片樣式。
+ * ------------------------------------------------------------------------- */
+
+.bind-shell {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:100vh;
+  padding:24px 18px;
+}
+
+.bind-card {
+  width:100%;
+  max-width:420px;
+  padding:28px 24px;
+  border-radius:20px;
+  background:white;
+  box-shadow:0 18px 44px rgba(15,23,42,.12);
+  text-align:center;
+}
+
+.bind-brand {
+  margin:0 0 6px;
+  color:#06C755;
+  font-size:.8rem;
+  font-weight:900;
+  letter-spacing:.08em;
+}
+
+.bind-title { margin:0 0 10px; font-size:1.3rem; line-height:1.4; }
+.bind-text { margin:0; color:var(--muted, #667); line-height:1.7; }
+
+.bind-actions {
+  display:flex;
+  flex-direction:column;
+  gap:10px;
+  margin-top:20px;
+}
+
+.bind-btn {
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:50px;
+  padding:0 18px;
+  border:0;
+  border-radius:14px;
+  color:white;
+  background:#06C755;
+  font-family:inherit;
+  font-size:1rem;
+  font-weight:800;
+  text-decoration:none;
+  cursor:pointer;
+}
+
+.bind-btn-ghost {
+  color:var(--muted, #667);
+  background:transparent;
+  border:1px solid var(--border, #dde);
+}
+
+.bind-note {
+  margin:22px 0 0;
+  color:var(--muted, #889);
+  font-size:.78rem;
+  line-height:1.6;
+}
 
 .text-btn {
   border:0;
