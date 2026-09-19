@@ -1751,13 +1751,18 @@ document.addEventListener('visibilitychange', () => {
  * load() 之後要重設 src（同一串網址瀏覽器可能直接沿用失敗的快取項目），所以加一個
  * 一次性的參數把它打掉。只重試一次——真的是 404 的話重試幾次都一樣，
  * 讓 Demo 計時的退路早點出現比較有用。
+ *
+ * **連 code 4 也重試。** 原本這裡把 MEDIA_ERR_SRC_NOT_SUPPORTED 排除掉，理由寫的是
+ * 「多半是真的沒這個檔」。實測推翻了這個假設：GitHub Pages 對這支 mp4 回過一次 503，
+ * 而伺服器回非 2xx 時瀏覽器丟出來的就是 code 4——跟真的 404 長得一模一樣，分不出來。
+ * 503 重試一次多半就過了，所以不再挑錯誤碼，一律給一次機會。
  */
 let videoRetried = false;
 
 video.addEventListener('error', () => {
   const code = video.error?.code ?? 0;
 
-  if (!videoRetried && code !== 4 /* MEDIA_ERR_SRC_NOT_SUPPORTED，多半是真的沒這個檔 */) {
+  if (!videoRetried) {
     videoRetried = true;
     const source = video.querySelector('source');
     if (source) {
