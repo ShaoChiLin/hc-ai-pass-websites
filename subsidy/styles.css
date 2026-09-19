@@ -941,6 +941,13 @@ button { cursor: pointer; }
 
 .upload-warning strong { font-size:13px; color:#8A5A00; line-height:1.5; }
 .upload-warning small { font-size:12.5px; }
+.upload-warning-checks {
+  margin:2px 0 0;
+  padding-left:18px;
+  color:#6D4A00;
+  font-size:12.5px;
+  line-height:1.55;
+}
 .upload-warning-file { overflow-wrap:anywhere; }
 .upload-warning .upload-anyway { margin-top:2px; font-size:12.5px; }
 

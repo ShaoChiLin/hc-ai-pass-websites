@@ -606,7 +606,7 @@ function renderProgram() {
   $('qualLowCap').textContent = `每人最高 ${formatMoney(p.grants.lowincome.cap)}`;
 
   const mb = Math.round(state.meta.upload.maxFileBytes / 1024 / 1024);
-  uploadLimitNote.textContent = `支援 JPG、PNG、PDF，單檔最大 ${mb} MB。同一類文件再上傳一次視為替換。`;
+  uploadLimitNote.textContent = `支援 JPG、PNG、PDF，單檔最大 ${mb} MB。上傳前會預檢照片品質與文件類型；同一類文件再上傳一次視為替換。`;
 
   renderUploadList();
 }
@@ -850,8 +850,11 @@ function renderUploadList() {
               ? `<div class="upload-warning">
                    <strong>⚠️ ${escapeHtml(flagged.verdict.message)}</strong>
                    <small>${escapeHtml(flagged.verdict.hint)}</small>
+                   ${flagged.verdict.checks?.length
+                     ? `<ul class="upload-warning-checks">${flagged.verdict.checks.map((check) => `<li>${escapeHtml(check)}</li>`).join('')}</ul>`
+                     : ''}
                    <small class="upload-warning-file">選到的檔案：${escapeHtml(flagged.file.name)}　${formatBytes(flagged.file.size)}</small>
-                   <button class="text-btn upload-anyway" type="button">這張沒問題，仍要上傳</button>
+                   <button class="text-btn upload-anyway" type="button">我已確認，仍要上傳</button>
                  </div>`
               : ''}
             <div class="upload-error" hidden></div>
@@ -911,10 +914,11 @@ async function ensureDraft(base) {
 }
 
 /**
- * 使用者選了一個檔案。先擋掉一定不會成功的，再做品質預檢，最後才送出。
+ * 使用者選了一個檔案。先擋掉一定不會成功的，再做兩層預檢，最後才送出。
  *
  * 品質預檢只回答「這張圖能不能看」（太小、全黑、糊掉），回答不了
- * 「這是不是正確的文件」——那要文字辨識才知道。所以它的結果是提示而非否決：
+ * 「這是不是正確的文件」。文件正確性預檢會再看檔名、PDF 文字層與影像版面，
+ * 找身分證明、發票／收據、存摺封面等必要線索。兩者都是提示而非否決：
  * 使用者按「仍要上傳」就會照送，因為誤判一定會發生，而擋掉一份合法申請
  * 比讓承辦人多看一張照片嚴重得多。
  */
@@ -937,6 +941,18 @@ async function uploadDocument(docType, file, item) {
   const verdict = await UploadImageCheck.inspect(file);
   if (!verdict.ok) {
     state.quality[docType] = { file, verdict };
+    renderUploadList();
+    return;
+  }
+
+  showUploadError(item, '正在檢核文件內容…', true);
+  const documentVerdict = await UploadDocumentCheck.inspect(docType, file, {
+    applicantName: nameInput.value,
+    bankCode: bankCode.value,
+    bankAccount: bankAccount.value,
+  });
+  if (!documentVerdict.ok) {
+    state.quality[docType] = { file, verdict: documentVerdict };
     renderUploadList();
     return;
   }
