@@ -1003,11 +1003,70 @@ async function uploadDocument(docType, file, item) {
   sendDocument(docType, file, item);
 }
 
+/**
+ * 上傳前先在瀏覽器裡把照片縮小、重新編成 JPEG。
+ *
+ * 為什麼要有這一層：實測 ngrok 免費通道的上行是瓶頸，不是伺服器。拿一支
+ * 一定回 404 的端點（伺服器不落地、不做辨識）連續送四次 700KB，量到
+ * 5.3s／15.8s／17.8s／24.0s，最後一次直接被通道回 503——瀏覽器把傳到一半
+ * 斷掉的請求就顯示成「Failed to fetch」。同一時間伺服器端的 HEIC 轉檔加
+ * 文字辨識只要 0.14–0.5 秒。也就是說，唯一有效的手段是少傳一點位元組。
+ *
+ * 為什麼縮到 1800px 還夠用：身分證的欄位名在 1800px 長邊下大約等於 500 DPI
+ * 以上，Tesseract 要的是 300 DPI。縮太多才會傷辨識，縮到這裡不會。
+ *
+ * 整段是 fail-open 的：解不開、畫不出來、或縮完反而更大，就照原檔送。
+ * 這一點不能改——寧可慢，也不能因為縮圖失敗就讓人傳不了文件。
+ */
+const SHRINK_MAX_EDGE = 1800;
+const SHRINK_QUALITY_STEPS = [0.75, 0.6];
+const SHRINK_SKIP_BYTES = 320 * 1024; // 已經夠小就別動，重壓只會掉畫質
+
+async function shrinkForUpload(file) {
+  try {
+    if (!/^image\//.test(file.type || '') && !/\.(jpe?g|png|heic|heif)$/i.test(file.name || '')) return file;
+    if (file.size <= SHRINK_SKIP_BYTES) return file;
+    if (typeof createImageBitmap !== 'function' || typeof document === 'undefined') return file;
+
+    // imageOrientation: 'from-image' 讓瀏覽器自己套 EXIF 轉向，
+    // 免得直的照片畫進 canvas 之後變成橫的、文字全部側著。
+    const bitmap = await createImageBitmap(file, { imageOrientation: 'from-image' });
+    const scale = Math.min(1, SHRINK_MAX_EDGE / Math.max(bitmap.width, bitmap.height));
+    const w = Math.max(1, Math.round(bitmap.width * scale));
+    const h = Math.max(1, Math.round(bitmap.height * scale));
+
+    const canvas = document.createElement('canvas');
+    canvas.width = w;
+    canvas.height = h;
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+    ctx.imageSmoothingQuality = 'high';
+    ctx.drawImage(bitmap, 0, 0, w, h);
+    if (typeof bitmap.close === 'function') bitmap.close();
+
+    let best = null;
+    for (const quality of SHRINK_QUALITY_STEPS) {
+      const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+      if (!blob) break;
+      best = blob;
+      if (blob.size <= SHRINK_SKIP_BYTES) break;
+    }
+    // 縮完比原檔還大就不划算（小張 PNG 轉 JPEG 常常這樣），照原檔送。
+    if (!best || best.size >= file.size) return file;
+    return best;
+  } catch {
+    // 瀏覽器解不了這個格式（Chrome 桌面版就解不了 HEIC）。照原檔送。
+    return file;
+  }
+}
+
 async function sendDocument(docType, file, item, { override = false } = {}) {
   const base = readApiBase();
   if (!base || !item) return;
 
-  const buffer = await file.arrayBuffer();
+  showUploadError(item, '處理照片中…', true);
+  const payload = await shrinkForUpload(file);
+  const buffer = await payload.arrayBuffer();
   // 先在本機比對檔頭。送出去才被退回的話，使用者要等一趟網路來回才知道選錯檔。
   const sig = sniffType(new Uint8Array(buffer));
   if (!sig) {
