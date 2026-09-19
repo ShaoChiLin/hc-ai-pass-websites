@@ -85,6 +85,33 @@ function render(title, text, buttons = []) {
   actionsEl.hidden = buttons.length === 0;
 }
 
+/**
+ * 把使用者送去重新登入一次 LINE。
+ *
+ * 一定要先 `logout()`。`login()` 自己不會把快取裡那顆過期的 ID token 換掉——
+ * LIFF 看到 `isLoggedIn()` 仍是 true 就直接把舊的還你，於是重新登入完還是同一顆死 token。
+ */
+function relogin() {
+  try { liff.logout(); } catch {}
+  liff.login({ redirectUri: location.href });
+}
+
+/**
+ * ID token 還有多久到期（秒）。解不開就回 null。
+ *
+ * **這不是在做驗證。** 簽章與 aud 仍然只由後端打 LINE 的 verify 端點驗（見檔頭）。
+ * 這裡只讀 `exp` 一個數字，用途是「先判斷這顆 token 值不值得送出去」——
+ * 前端自己讀 exp 騙不了任何人，最多只能害自己多登入一次。
+ */
+function idTokenTtl(idToken) {
+  try {
+    const payload = JSON.parse(atob(idToken.split('.')[1].replace(/-/g, '+').replace(/_/g, '/')));
+    return typeof payload.exp === 'number' ? payload.exp - Math.floor(Date.now() / 1000) : null;
+  } catch {
+    return null;
+  }
+}
+
 /** 在 LINE 內開啟時，完成後給一顆關掉視窗的按鈕；外部瀏覽器沒有這個能力。 */
 function closeButton() {
   if (typeof liff === 'undefined' || !liff.isInClient?.()) return [];
@@ -159,7 +186,7 @@ async function main() {
     render(
       '請先用 LINE 登入',
       '這個瀏覽器不是 LINE App，需要登入一次 LINE 才能確認是誰要綁定。',
-      [{ label: '用 LINE 登入', onClick: () => liff.login({ redirectUri: location.href }) }],
+      [{ label: '用 LINE 登入', onClick: relogin }],
     );
     return;
   }
@@ -171,13 +198,41 @@ async function main() {
     return;
   }
 
+  /*
+   * 過期的 ID token 不要送出去。
+   *
+   * 這是實測踩到的坑，而且非常像現場會發生的事：桌機上幾小時前登入過一次，
+   * `liff.isLoggedIn()` 到現在都還是 true，但 `getIDToken()` 回的是當時那一顆快取
+   * ——量到的是簽發 684 分鐘前、已經過期 624 分鐘。LIFF 不會自己去換新的。
+   *
+   * 送出去的下場是後端打 LINE verify 被打回來，畫面只寫「LINE 憑證驗證失敗」，
+   * 看起來像 channel 設定錯了，其實只是 token 放太久；而且那一頁沒有任何按鈕可以救。
+   * 所以先在這裡擋下來，直接給一顆重新登入的按鈕。
+   *
+   * 留 60 秒餘裕：剛好卡在邊界的 token 送出去也是白跑一趟。
+   */
+  const ttl = idTokenTtl(idToken);
+  if (ttl !== null && ttl < 60) {
+    render(
+      'LINE 登入已過期',
+      '上次登入 LINE 的憑證已經逾時，需要重新登入一次才能綁定。綁定碼還在這條網址裡，登入完會自動接著做。',
+      [{ label: '重新用 LINE 登入', onClick: relogin }],
+    );
+    return;
+  }
+
   render('綁定中', '正在向伺服器確認…');
 
   let result;
   try {
     result = await bind(idToken);
   } catch (error) {
-    render('綁定失敗', `${error.message}`, closeButton());
+    // 綁定失敗也要留一條路回去。最常見的兩種原因——憑證過期、按到舊分頁的綁定碼——
+    // 都能靠重新登入一次解決，所以按鈕一律附上，不要讓使用者停在一個沒有出口的畫面。
+    render('綁定失敗', `${error.message}`, [
+      { label: '重新用 LINE 登入', onClick: relogin },
+      ...closeButton(),
+    ]);
     return;
   }
 
