@@ -11,7 +11,7 @@
   <!-- ?v= 是給 GitHub Pages 用的。它對靜態檔會回 max-age=600，改版後十分鐘內回訪的人
        會拿到「新的 index.html ＋ 快取裡的舊 app.js」：畫面是新的七步流程，跑的卻是舊的
        三步程式，第一頁勾完同意事項按鈕照樣反灰。每次改這兩支檔就把日期一起改掉。 -->
-  <link rel="stylesheet" href="./styles.css?v=20260918-mask-a" />
+  <link rel="stylesheet" href="./styles.css?v=20260919-ocr-b" />
 </head>
 <body>
   <div class="app-shell">
@@ -256,7 +256,7 @@
           <div>
             <div class="section-kicker">STEP 03</div>
             <h2>先花 20 秒，保護你的資料</h2>
-            <p>看完宣導並完成三項自我檢核後，才能進入申請書。</p>
+            <p>看完宣導並答對 AI 安全三問後，才能進入申請書。</p>
           </div>
           <div class="shield-icon">🛡️</div>
         </div>
@@ -298,34 +298,90 @@
 
         <div class="form-section">
           <h3>AI 安全三問</h3>
-          <div class="check-list">
-            <label class="check-card">
-              <input type="checkbox" class="security-check" />
-              <span class="check-box">✓</span>
-              <span>
-                <strong>資料安全</strong>
-                <small>我不會上傳個資、機密或未公開資訊至未經授權的公開生成式 AI。</small>
-              </span>
-            </label>
+          <p class="quiz-intro">三題都答對才能進入申請書。答錯可以直接改選。</p>
 
-            <label class="check-card">
-              <input type="checkbox" class="security-check" />
-              <span class="check-box">✓</span>
-              <span>
-                <strong>工具可信</strong>
-                <small>我會確認 AI 工具來源、隱私政策與資料是否可能被保存或用於模型訓練。</small>
-              </span>
-            </label>
+          <!--
+            這三個 checkbox 是關卡的真正依據：app.js 讀 `.security-check`，
+            三個都打勾才把 state.securityComplete 設成 true。答對第 N 題就由
+            security-quiz.js 幫第 N 個打勾並派發 change。
 
-            <label class="check-card">
-              <input type="checkbox" class="security-check" />
-              <span class="check-box">✓</span>
-              <span>
-                <strong>合法使用</strong>
-                <small>我會確認 AI 生成內容是否涉及著作權、肖像、商標或其他授權限制。</small>
-              </span>
-            </label>
+            **刻意保留而不是改 app.js**：草稿存檔（securityChecks 陣列）、
+            「重新填寫」的清空、syncFromDom 的重算全部沿用既有路徑，
+            測驗層可以整個拿掉而流程不受影響。使用者不會看到它們。
+          -->
+          <div class="security-gate" hidden>
+            <input type="checkbox" class="security-check" tabindex="-1" aria-hidden="true" />
+            <input type="checkbox" class="security-check" tabindex="-1" aria-hidden="true" />
+            <input type="checkbox" class="security-check" tabindex="-1" aria-hidden="true" />
           </div>
+
+          <ol class="quiz-list" id="securityQuiz">
+            <li class="quiz-item" data-answer="B" data-explain="已經公開的內容風險較低；未公開、涉及個資或機密的資料一旦送進公開的 AI 服務，就可能被保存或用於模型訓練。">
+              <p class="quiz-question"><span class="quiz-number">第 1 題</span>哪些資料不適合直接上傳公開生成式 AI？</p>
+              <div class="quiz-options">
+                <label class="quiz-option">
+                  <input type="radio" name="securityQuiz1" value="A">
+                  <span class="quiz-key" aria-hidden="true">A</span>
+                  <span class="quiz-text">已公開的活動文宣</span>
+                </label>
+                <label class="quiz-option">
+                  <input type="radio" name="securityQuiz1" value="B">
+                  <span class="quiz-key" aria-hidden="true">B</span>
+                  <span class="quiz-text">未公開專案、個資或機密文件</span>
+                </label>
+                <label class="quiz-option">
+                  <input type="radio" name="securityQuiz1" value="C">
+                  <span class="quiz-key" aria-hidden="true">C</span>
+                  <span class="quiz-text">自己寫的公開貼文</span>
+                </label>
+              </div>
+              <p class="quiz-feedback" role="status"></p>
+            </li>
+
+            <li class="quiz-item" data-answer="C" data-explain="速度與介面是使用體驗，不影響風險。真正要先確認的是資料安全、工具來源可信度，以及所屬單位的使用規範。">
+              <p class="quiz-question"><span class="quiz-number">第 2 題</span>使用 AI 工具前，最重要的是先確認什麼？</p>
+              <div class="quiz-options">
+                <label class="quiz-option">
+                  <input type="radio" name="securityQuiz2" value="A">
+                  <span class="quiz-key" aria-hidden="true">A</span>
+                  <span class="quiz-text">AI 回答速度快不快</span>
+                </label>
+                <label class="quiz-option">
+                  <input type="radio" name="securityQuiz2" value="B">
+                  <span class="quiz-key" aria-hidden="true">B</span>
+                  <span class="quiz-text">介面看起來漂不漂亮</span>
+                </label>
+                <label class="quiz-option">
+                  <input type="radio" name="securityQuiz2" value="C">
+                  <span class="quiz-key" aria-hidden="true">C</span>
+                  <span class="quiz-text">資料是否安全、工具來源是否可信、使用規範是否清楚</span>
+                </label>
+              </div>
+              <p class="quiz-feedback" role="status"></p>
+            </li>
+
+            <li class="quiz-item" data-answer="B" data-explain="AI 的語氣流暢不等於內容正確。重要資訊仍要查證來源，也要確認是否涉及著作權、肖像或商標等授權限制。">
+              <p class="quiz-question"><span class="quiz-number">第 3 題</span>AI 產生的內容看起來很完整，可以直接使用嗎？</p>
+              <div class="quiz-options">
+                <label class="quiz-option">
+                  <input type="radio" name="securityQuiz3" value="A">
+                  <span class="quiz-key" aria-hidden="true">A</span>
+                  <span class="quiz-text">可以，只要 AI 很有信心</span>
+                </label>
+                <label class="quiz-option">
+                  <input type="radio" name="securityQuiz3" value="B">
+                  <span class="quiz-key" aria-hidden="true">B</span>
+                  <span class="quiz-text">不一定，重要內容仍要查證來源與授權</span>
+                </label>
+                <label class="quiz-option">
+                  <input type="radio" name="securityQuiz3" value="C">
+                  <span class="quiz-key" aria-hidden="true">C</span>
+                  <span class="quiz-text">可以，只要沒有錯字</span>
+                </label>
+              </div>
+              <p class="quiz-feedback" role="status"></p>
+            </li>
+          </ol>
 
           <div class="security-result" id="securityResult">
             <div class="result-icon">🛡️</div>
@@ -677,9 +733,11 @@
   <div class="toast" id="toast"></div>
 
   <!-- 提供 app.js 的 uploadDocument() 所用的 UploadImageCheck。 -->
-  <script src="./image-check.js?v=20260918-mask-a"></script>
-  <script src="./app.js?v=20260918-mask-a"></script>
+  <script src="./image-check.js?v=20260919-ocr-b"></script>
+  <script src="./app.js?v=20260919-ocr-b"></script>
   <!-- 掛在 app.js 之後：遮蔽層只包住既有的 input，不改值，拿掉也不影響表單流程。 -->
-  <script src="./demo-mask.js?v=20260918-mask-a"></script>
+  <script src="./demo-mask.js?v=20260919-ocr-b"></script>
+  <!-- 掛在 app.js 之後：只改 STEP 3 的畫面，關卡仍由 app.js 讀 .security-check 決定。 -->
+  <script src="./security-quiz.js?v=20260919-ocr-b"></script>
 </body>
 </html>

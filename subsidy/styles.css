@@ -510,6 +510,146 @@ button { cursor: pointer; }
   background: var(--line);
 }
 
+/* ---------------------------------------------------------------------------
+ * AI 安全三問（security-quiz.js）
+ *
+ * 沿用 .check-card 的卡片語彙，但選項是單選＋即時對錯。答對綠、答錯紅，
+ * 兩者都保留邊框與底色的對比，不只靠顏色——色盲使用者仍看得到 ✓／✕ 與文字回饋。
+ * ------------------------------------------------------------------------- */
+.quiz-intro {
+  margin: -6px 0 14px;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.quiz-list {
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  display: grid;
+  gap: 18px;
+}
+
+.quiz-item {
+  padding: 18px;
+  border: 1px solid var(--border);
+  border-radius: 18px;
+  background: white;
+  transition: .2s ease;
+}
+
+.quiz-item.correct { border-color: rgba(6,199,85,.35); background: var(--success-soft); }
+.quiz-item.wrong { border-color: rgba(229,72,77,.3); background: #FDF1F1; }
+
+.quiz-question {
+  margin: 0 0 14px;
+  font-size: 15px;
+  font-weight: 700;
+  line-height: 1.6;
+  color: var(--navy);
+}
+
+.quiz-number {
+  display: inline-block;
+  margin-right: 10px;
+  padding: 3px 9px;
+  border-radius: 999px;
+  background: var(--blue-soft);
+  color: var(--blue);
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.quiz-options { display: grid; gap: 8px; }
+
+.quiz-option {
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: white;
+  line-height: 1.55;
+  cursor: pointer;
+  transition: .18s ease;
+}
+
+.quiz-option:hover { border-color: #C6D0EA; }
+.quiz-option input { position: absolute; opacity: 0; pointer-events: none; }
+
+/* 鍵盤走到選項時要看得出來——input 被藏起來了，outline 得畫在卡片上。 */
+.quiz-option:has(input:focus-visible) {
+  border-color: var(--blue);
+  box-shadow: 0 0 0 4px rgba(52,87,230,.12);
+}
+
+.quiz-key {
+  display: grid;
+  place-items: center;
+  flex: 0 0 auto;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: #FAFBFD;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.quiz-text { font-size: 14px; }
+
+.quiz-option.is-correct {
+  border-color: rgba(6,199,85,.45);
+  background: var(--success-soft);
+}
+
+.quiz-option.is-correct .quiz-key {
+  border-color: var(--line);
+  background: var(--line);
+  color: white;
+}
+
+/* ✓／✕ 用 ::after 補在選項尾端，讓對錯不是只有顏色在說話。 */
+.quiz-option.is-correct::after {
+  content: '✓';
+  margin-left: auto;
+  color: #0B7A3B;
+  font-weight: 800;
+}
+
+.quiz-option.is-wrong {
+  border-color: rgba(229,72,77,.4);
+  background: #FDF1F1;
+}
+
+.quiz-option.is-wrong .quiz-key {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: white;
+}
+
+.quiz-option.is-wrong::after {
+  content: '✕';
+  margin-left: auto;
+  color: var(--danger);
+  font-weight: 800;
+}
+
+.quiz-feedback {
+  margin: 0;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.quiz-feedback:empty { display: none; }
+.quiz-item.answered .quiz-feedback { margin-top: 12px; }
+.quiz-item.correct .quiz-feedback { color: #0B7A3B; }
+.quiz-item.wrong .quiz-feedback { color: var(--danger); }
+
 .security-result {
   display: flex;
   align-items: center;
