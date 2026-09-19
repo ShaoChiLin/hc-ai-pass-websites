@@ -273,8 +273,13 @@
 
         <div class="video-card">
           <div class="video-frame" id="videoFrame">
-            <video id="awarenessVideo" playsinline preload="metadata" controls>
-              <source src="./assets/security-awareness.mp4?v=20260918-a" type="video/mp4">
+            <!--
+              preload="auto" 是刻意的。影片重壓過後只有 5.7MB，而使用者走到這一步之前
+              還要填三頁表單，這段時間足夠把整支載完；等他按播放時已經在快取裡。
+              preload="metadata" 省下來的那點流量，換來的是現場按下去才開始載。
+            -->
+            <video id="awarenessVideo" playsinline preload="auto" controls>
+              <source src="./assets/security-awareness.mp4?v=20260920-small-a" type="video/mp4">
             </video>
 
             <div class="video-placeholder" id="videoPlaceholder">
@@ -743,11 +748,11 @@
   <div class="toast" id="toast"></div>
 
   <!-- 提供 app.js 的 uploadDocument() 所用的 UploadImageCheck。 -->
-  <script src="./image-check.js?v=20260920-shrink-a"></script>
-  <script src="./app.js?v=20260920-shrink-a"></script>
+  <script src="./image-check.js?v=20260920-video-a"></script>
+  <script src="./app.js?v=20260920-video-a"></script>
   <!-- 掛在 app.js 之後：遮蔽層只包住既有的 input，不改值，拿掉也不影響表單流程。 -->
-  <script src="./demo-mask.js?v=20260920-shrink-a"></script>
+  <script src="./demo-mask.js?v=20260920-video-a"></script>
   <!-- 掛在 app.js 之後：只改 STEP 3 的畫面，關卡仍由 app.js 讀 .security-check 決定。 -->
-  <script src="./security-quiz.js?v=20260920-shrink-a"></script>
+  <script src="./security-quiz.js?v=20260920-video-a"></script>
 </body>
 </html>

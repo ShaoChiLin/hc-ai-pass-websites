@@ -117,12 +117,21 @@ async function main() {
     return;
   }
 
-  let liffId;
-  try {
-    liffId = await fetchLiffId();
-  } catch (error) {
-    render('連不上收件伺服器', `${error.message}。請確認伺服器與 ngrok 都還開著，再重新點一次綁定按鈕。`);
-    return;
+  /*
+   * liffId 優先讀網址上的 `?liff=`（收件頁已經知道這個值，直接傳過來）。
+   * 沒有才回頭問伺服器——舊的綁定連結、或手動貼的網址會走這條。
+   *
+   * 差別在現場很要命：問伺服器那一次往返跑在 ngrok 免費通道上，而這是整個流程的
+   * 最後一步，綁定碼又只顯示一次。少一次往返就少一個會當場炸掉的地方。
+   */
+  let liffId = String(params.get('liff') ?? '').trim();
+  if (!liffId) {
+    try {
+      liffId = await fetchLiffId();
+    } catch (error) {
+      render('連不上收件伺服器', `${error.message}。請確認伺服器與 ngrok 都還開著，再重新點一次綁定按鈕。`);
+      return;
+    }
   }
 
   try {

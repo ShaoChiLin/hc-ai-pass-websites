@@ -1346,6 +1346,17 @@ function renderReceipt(data) {
       url.searchParams.set('token', data.lineBinding.code);
       const base = readApiBase();
       if (base) url.searchParams.set('api', base);
+
+      /*
+       * liffId 也一起帶過去。
+       *
+       * 它雖然就在上面那串網址的路徑裡，但 LINE 轉去 Endpoint URL 之後路徑會換成
+       * 綁定頁自己的，liffId 就不見了——所以綁定頁本來得先打一次 /program 把它問回來。
+       * 那一次請求跑在 ngrok 免費通道上，偏偏是整個流程最後、也最不能失敗的一步：
+       * 通道一慢或一斷，畫面就停在「連不上收件伺服器」，綁定碼只顯示一次也補不回來。
+       * 這裡多帶一個參數，就能讓 liff.init() 不必等那次往返。
+       */
+      url.searchParams.set('liff', data.lineBinding.liffId);
       open.href = url.toString();
       open.textContent = '用 LINE 一鍵綁定通知';
       open.setAttribute('aria-label', '用 LINE 一鍵綁定審核通知');
@@ -1702,7 +1713,39 @@ video.addEventListener('loadedmetadata', () => {
   videoPlaceholder.style.display = 'none';
 });
 
+/**
+ * 影片載入失敗時重試一次再放棄。
+ *
+ * 現場 Wi-Fi 底下最常見的不是「檔案不見了」，是 MEDIA_ERR_NETWORK：連線中途斷掉，
+ * 瀏覽器就把 <video> 判死、不會自己重來。以前這裡直接蓋上「載入失敗」的說明，
+ * 於是一個純粹的暫時性斷線看起來像影片檔壞了。
+ *
+ * load() 之後要重設 src（同一串網址瀏覽器可能直接沿用失敗的快取項目），所以加一個
+ * 一次性的參數把它打掉。只重試一次——真的是 404 的話重試幾次都一樣，
+ * 讓 Demo 計時的退路早點出現比較有用。
+ */
+let videoRetried = false;
+
 video.addEventListener('error', () => {
+  const code = video.error?.code ?? 0;
+
+  if (!videoRetried && code !== 4 /* MEDIA_ERR_SRC_NOT_SUPPORTED，多半是真的沒這個檔 */) {
+    videoRetried = true;
+    const source = video.querySelector('source');
+    if (source) {
+      const url = new URL(source.getAttribute('src'), location.href);
+      url.searchParams.set('retry', String(Date.now()));
+      source.setAttribute('src', url.pathname + url.search);
+      video.load();
+      return;
+    }
+  }
+
+  // 把實際的錯誤碼寫進說明裡。4 = 找不到／不支援，2 = 網路中斷，3 = 解碼失敗。
+  // 現場要判斷「是檔案問題還是網路問題」就靠這個數字，不然只能猜。
+  const reason = { 1: '載入被中止', 2: '網路中斷', 3: '影片解碼失敗', 4: '找不到影片檔或格式不支援' }[code] || '未知原因';
+  const copy = videoPlaceholder.querySelector('.placeholder-copy');
+  if (copy) copy.textContent = `影片載入失敗（${reason}）。可以先用下面的計時完成這一步。`;
   videoPlaceholder.style.display = 'grid';
 });
 
