@@ -141,10 +141,26 @@ async function main() {
     return;
   }
 
-  // 在 LINE App 裡開啟時已經是登入狀態；外部瀏覽器才會真的跳一次 LINE Login。
-  // redirectUri 帶完整網址（含 query），登入回來才不會掉了綁定碼。
+  /*
+   * 在 LINE App 裡開啟時已經是登入狀態；外部瀏覽器才需要跑一次 LINE Login。
+   *
+   * **桌機不自動跳轉。** `liff.login()` 是一次離站導向，一旦 LINE 那邊不收這個
+   * redirect_uri（Callback URL 沒登記），使用者會停在 LINE 自己的錯誤頁：
+   *
+   *   error=Bad Request / invalid url. channelId=…, redirectUriString=…/line-bind.html?token=…
+   *
+   * 那一頁沒有返回的路，而綁定碼只顯示一次——等於整件申請的最後一步直接蒸發。
+   * 所以改成先停在這裡，把選擇權交回去：要嘛按鈕去登入，要嘛改用聊天室綁定。
+   * 就算設定真的壞了，畫面也還在，綁定碼還救得回來。
+   *
+   * redirectUri 帶完整網址（含 query），登入回來才不會掉了綁定碼。
+   */
   if (!liff.isLoggedIn()) {
-    liff.login({ redirectUri: location.href });
+    render(
+      '請先用 LINE 登入',
+      '這個瀏覽器不是 LINE App，需要登入一次 LINE 才能確認是誰要綁定。',
+      [{ label: '用 LINE 登入', onClick: () => liff.login({ redirectUri: location.href }) }],
+    );
     return;
   }
 

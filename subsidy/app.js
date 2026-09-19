@@ -839,6 +839,10 @@ function goToStep(step) {
   updatePanels();
   updateFooter();
   saveDraft();
+
+  // 要排在 updatePanels() 之後：那一行才會把 panel-3 從 display:none 放出來，
+  // 而瀏覽器不會替尺寸是 0 的 <video> 載東西。見 kickVideoIfIdle()。
+  if (state.currentStep === 3) kickVideoIfIdle();
 }
 
 /** 把資格預檢填的縣市與行政區帶進申請書。伺服器會比對兩者是否一致。 */
@@ -1711,6 +1715,30 @@ mailingSame.addEventListener('change', () => {
 
 video.addEventListener('loadedmetadata', () => {
   videoPlaceholder.style.display = 'none';
+});
+
+/**
+ * 影片沒動靜時踢它一腳。
+ *
+ * 這是「有時候影片就是不播」的真正原因，量出來的：分頁在背景時 Chrome 根本不會載
+ * 媒體——請求送出去就停在 pending，`networkState` 是 2（LOADING）、`readyState` 停在 0、
+ * **而且不會觸發 error**。同一支檔案用 fetch() 抓是 200、5.8MB、5 秒抓完，換成
+ * <video> 就永遠卡住；從 localhost 抓也一樣，所以跟 ngrok、跟檔案大小都無關。
+ *
+ * 同一類的還有兩種：STEP 03 還沒打開時 <video> 在 display:none 的子樹裡（尺寸 0），
+ * 以及使用者切到別的分頁再切回來。共通點都是「瀏覽器決定現在不載」，
+ * 而它不會在條件恢復時自己重來。
+ *
+ * 所以在分頁變可見、以及走到 STEP 03 時各檢查一次：還停在 readyState 0 就重新 load()。
+ */
+function kickVideoIfIdle() {
+  if (video.readyState !== 0) return;
+  if (video.error) return; // 真的失敗了，交給 error 那條路處理，不要跟它打架
+  try { video.load(); } catch {}
+}
+
+document.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'visible') kickVideoIfIdle();
 });
 
 /**

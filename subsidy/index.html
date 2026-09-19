@@ -285,7 +285,13 @@
             <div class="video-placeholder" id="videoPlaceholder">
               <div class="placeholder-mascot">🧭</div>
               <div class="placeholder-title">AI 資安宣導影片</div>
-              <div class="placeholder-copy">影片載入失敗（找不到 <strong>assets/security-awareness.mp4</strong>，或網路中斷）。<br>可以先用下面的計時完成這一步。</div>
+              <!--
+                這裡的預設文案是「載入中」，不是「載入失敗」。
+                這一格在 loadedmetadata 之前一直蓋在影片上，而 metadata 慢的理由很多
+                （分頁在背景、這一頁還在 display:none、網路慢），全都不是失敗。
+                真的失敗時 app.js 會把文案換成帶錯誤碼的版本。
+              -->
+              <div class="placeholder-copy">影片載入中…<br>載不出來也沒關係，可以用下面的計時完成這一步。</div>
               <button class="ghost-btn" id="demoPlayBtn" type="button">沒有影片？使用 20 秒 Demo 計時</button>
             </div>
 
@@ -748,11 +754,11 @@
   <div class="toast" id="toast"></div>
 
   <!-- 提供 app.js 的 uploadDocument() 所用的 UploadImageCheck。 -->
-  <script src="./image-check.js?v=20260920-video-a"></script>
-  <script src="./app.js?v=20260920-video-a"></script>
+  <script src="./image-check.js?v=20260920-video-b"></script>
+  <script src="./app.js?v=20260920-video-b"></script>
   <!-- 掛在 app.js 之後：遮蔽層只包住既有的 input，不改值，拿掉也不影響表單流程。 -->
-  <script src="./demo-mask.js?v=20260920-video-a"></script>
+  <script src="./demo-mask.js?v=20260920-video-b"></script>
   <!-- 掛在 app.js 之後：只改 STEP 3 的畫面，關卡仍由 app.js 讀 .security-check 決定。 -->
-  <script src="./security-quiz.js?v=20260920-video-a"></script>
+  <script src="./security-quiz.js?v=20260920-video-b"></script>
 </body>
 </html>
