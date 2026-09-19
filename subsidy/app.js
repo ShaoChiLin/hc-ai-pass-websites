@@ -829,6 +829,27 @@ function sniffType(bytes) {
   return SIGNATURES.find((sig) => sig.magic.every((byte, i) => bytes[i] === byte)) ?? null;
 }
 
+/** 本機靜態預覽沒有收件後端；只在這些 host 允許用記憶體暫存測試檔案。 */
+function isLocalPreview() {
+  return ['localhost', '127.0.0.1', '::1'].includes(location.hostname);
+}
+
+function acceptLocalDocument(docType, file, sig, reason = '') {
+  state.files[docType] = {
+    fileId: `local-${Date.now()}`,
+    displayName: file.name,
+    size: file.size,
+    mimeType: sig.mimeType,
+    localOnly: true,
+  };
+  renderUploadList();
+  updateFooter();
+  showToast(`本機測試：已檢核「${docType}」（未送至伺服器）`);
+
+  const target = uploadList.querySelector(`.upload-item[data-doc="${CSS.escape(docType)}"]`);
+  if (target && reason) showUploadError(target, `收件伺服器目前不可用；已改成本機測試暫存。${reason}`);
+}
+
 function renderUploadList() {
   const docs = requiredDocuments();
 
@@ -844,7 +865,7 @@ function renderUploadList() {
             <span class="doc-tag">${doc.required ? '必備' : '低收／中低收適用'}</span>
             <small>${escapeHtml(doc.note)}</small>
             ${done
-              ? `<div class="upload-file">📄 ${escapeHtml(file.displayName)}　${formatBytes(file.size)}</div>`
+              ? `<div class="upload-file">📄 ${escapeHtml(file.displayName)}　${formatBytes(file.size)}${file.localOnly ? '<span class="upload-local-tag">本機測試，未送出</span>' : ''}</div>`
               : ''}
             ${flagged
               ? `<div class="upload-warning">
@@ -907,7 +928,11 @@ async function ensureDraft(base) {
     headers: NGROK_HEADER,
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || `伺服器回應 ${response.status}`);
+  if (!response.ok) {
+    const error = new Error(data.error || `伺服器回應 ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
 
   state.draftId = data.draftId;
   return state.draftId;
@@ -927,7 +952,7 @@ async function uploadDocument(docType, file, item) {
   delete state.quality[docType];
 
   const base = readApiBase();
-  if (!base) {
+  if (!base && !isLocalPreview()) {
     showUploadError(item, '尚未連線到收件伺服器，無法上傳。可先送出，文件之後再補。');
     return;
   }
@@ -962,13 +987,19 @@ async function uploadDocument(docType, file, item) {
 
 async function sendDocument(docType, file, item) {
   const base = readApiBase();
-  if (!base || !item) return;
+  if (!item) return;
 
   const buffer = await file.arrayBuffer();
   // 先在本機比對檔頭。送出去才被退回的話，使用者要等一趟網路來回才知道選錯檔。
   const sig = sniffType(new Uint8Array(buffer));
   if (!sig) {
     showUploadError(item, '只接受 JPG、PNG 或 PDF 檔。副檔名改掉不算數。');
+    return;
+  }
+
+  if (!base) {
+    if (isLocalPreview()) acceptLocalDocument(docType, file, sig, '');
+    else showUploadError(item, '尚未連線到收件伺服器，無法上傳。可先送出，文件之後再補。');
     return;
   }
 
@@ -993,7 +1024,11 @@ async function sendDocument(docType, file, item) {
       state.files = {};
       throw new Error('上傳暫存已過期，請再上傳一次。');
     }
-    if (!response.ok) throw new Error(data.error || `伺服器回應 ${response.status}`);
+    if (!response.ok) {
+      const error = new Error(data.error || `伺服器回應 ${response.status}`);
+      error.status = response.status;
+      throw error;
+    }
 
     state.files[docType] = data.file;
     renderUploadList();
@@ -1001,6 +1036,10 @@ async function sendDocument(docType, file, item) {
     saveDraft();
     showToast(data.replaced ? `已替換「${docType}」` : `已上傳「${docType}」`);
   } catch (error) {
+    if (isLocalPreview() && (!error.status || error.status >= 500)) {
+      acceptLocalDocument(docType, file, sig, error.message ? `（${error.message}）` : '');
+      return;
+    }
     renderUploadList();
     const target = uploadList.querySelector(`.upload-item[data-doc="${CSS.escape(docType)}"]`);
     if (target) showUploadError(target, error.message);
@@ -1018,7 +1057,7 @@ async function removeDocument(docType) {
   updateFooter();
   saveDraft();
 
-  if (base && state.draftId) {
+  if (base && state.draftId && !file.localOnly) {
     // 刪不掉也不必打斷使用者——草稿有壽命，掃描器最後會把整份清掉。
     fetch(`${base}/api/applications/drafts/${state.draftId}/files/${file.fileId}`, {
       method: 'DELETE',
@@ -1310,7 +1349,8 @@ function saveDraft() {
     tool: toolInput.value,
     amount: amountInput.value,
     draftId: state.draftId,
-    files: state.files,
+    // 本機測試只保存檢核結果，不保存檔案；重新整理後應重新選取。
+    files: Object.fromEntries(Object.entries(state.files).filter(([, file]) => !file.localOnly)),
     savedAt: Date.now(),
   };
 
