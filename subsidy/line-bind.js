@@ -134,7 +134,13 @@ async function bind(idToken) {
     body: JSON.stringify({ token, idToken }),
   });
   const data = await response.json().catch(() => ({}));
-  if (!response.ok) throw new Error(data.error || `伺服器回應 ${response.status}`);
+  if (!response.ok) {
+    // 狀態碼要留著。失敗的補救方式完全取決於它是哪一種失敗：
+    // 401（憑證）重新登入就好，409（綁定碼）重新登入一百次也沒用。見 main()。
+    const error = new Error(data.error || `伺服器回應 ${response.status}`);
+    error.status = response.status;
+    throw error;
+  }
   return data;
 }
 
@@ -227,12 +233,32 @@ async function main() {
   try {
     result = await bind(idToken);
   } catch (error) {
-    // 綁定失敗也要留一條路回去。最常見的兩種原因——憑證過期、按到舊分頁的綁定碼——
-    // 都能靠重新登入一次解決，所以按鈕一律附上，不要讓使用者停在一個沒有出口的畫面。
-    render('綁定失敗', `${error.message}`, [
-      { label: '重新用 LINE 登入', onClick: relogin },
-      ...closeButton(),
-    ]);
+    /*
+     * 失敗的補救方式取決於是哪一種失敗，**不要一律給重新登入**。
+     *
+     * 401 是 LINE 憑證的問題（過期、channel 對不上），重新登入一次就好。
+     * 409 是綁定碼本身已使用／已過期／不正確——這時給「重新用 LINE 登入」會害人
+     * 原地繞圈：登入成功、轉回來、同一個綁定碼、同一個錯誤，而且看起來像登入壞了。
+     * 實測就是這樣繞出來的。所以 409 只講實話，並指回真正有救的那條路。
+     */
+    if (error.status === 401) {
+      render('綁定失敗', `${error.message}`, [
+        { label: '重新用 LINE 登入', onClick: relogin },
+        ...closeButton(),
+      ]);
+      return;
+    }
+
+    if (error.status === 409) {
+      render(
+        '這個綁定碼不能用了',
+        `${error.message}重新登入 LINE 沒有用——問題不在你的帳號，在這串網址裡的綁定碼。請回到申請完成頁，重新點一次「用 LINE 一鍵綁定通知」；那一頁已經關掉的話，就重新送一次申請。`,
+        closeButton(),
+      );
+      return;
+    }
+
+    render('綁定失敗', `${error.message}`, closeButton());
     return;
   }
 
