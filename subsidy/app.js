@@ -516,7 +516,11 @@ async function detectSameOriginApi() {
     if (readStoredValue()) return; // 已經明確設定過（含離線）就不要自作聰明
     if (location.protocol !== 'http:' && location.protocol !== 'https:') return;
 
-    const response = await fetch(`${location.origin}/api/applications/program`);
+    // 一定要帶 NGROK_HEADER：頁面若是由 ngrok 通道上的 /subsidy/ 提供，
+    // 沒帶這個標頭的話 ngrok 免費版會回它自己的警告頁 HTML 而不是我們的 JSON，
+    // response.ok 會是 true、response.json() 會丟例外，最後被 catch 吃掉，
+    // 於是明明就是同源卻被判成「離線展示模式」。同源請求不會因此觸發 preflight。
+    const response = await fetch(`${location.origin}/api/applications/program`, { headers: NGROK_HEADER });
     if (!response.ok) return;
 
     const data = await response.json();
