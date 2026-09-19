@@ -1636,3 +1636,808 @@ button { cursor: pointer; }
   .topbar, .api-bar, .sticky-footer, .toast { display:none !important; }
   .app-shell { padding-bottom:0; }
 }
+
+/* ===========================================================================
+ * THEME · CYBER GLASS（賽博龐克 × liquid glass）
+ *
+ * 色票：#61355f 深紫 / #9b4980 洋紅 / #aad3e0 冰藍 / #0d9aa2 青 / #045f6b 深青
+ *
+ * 全部掛在 body.theme-cyber 底下，不改上面任何一條原始規則。理由有三：
+ *   1. line-bind.html 共用這份 styles.css，但它沒有 .theme-cyber，維持淺色。
+ *   2. 要退回舊外觀只要把 index.html 的 class 拿掉，不必還原一千多行。
+ *   3. 上面的規則多半用 var()，所以這裡重新定義一次 token 就能帶動大半版面，
+ *      這個區塊只需要處理「寫死淺色」的那些例外。
+ * ------------------------------------------------------------------------- */
+
+.theme-cyber {
+  /* --- 原有 token 重新指向深色／色票 --- */
+  --navy: #0B0718;
+  --navy-2: #1B0F2E;
+  --blue: #0d9aa2;          /* 主強調色由藍改青，CTA、焦點、連結都跟著走 */
+  --blue-2: #045f6b;
+  --bg: #0A0616;
+  --surface: rgba(28, 16, 46, 0.55);
+  --text: #ECF5F8;
+  --muted: #A9B4C6;
+  --border: rgba(170, 211, 224, 0.16);
+  --danger: #FF7183;        /* 深底上的紅要拉亮，#E5484D 在 #0A0616 上讀不動 */
+  --warning: #FFB547;
+  --success-soft: rgba(13, 154, 162, 0.15);
+  --blue-soft: rgba(13, 154, 162, 0.14);
+  --shadow: 0 22px 56px rgba(0, 0, 0, 0.5);
+  --shadow-soft: 0 12px 32px rgba(0, 0, 0, 0.38);
+
+  /* --- 色票原色，給漸層與光暈用 --- */
+  --plum: #61355f;
+  --magenta: #9b4980;
+  --ice: #aad3e0;
+  --teal: #0d9aa2;
+  --teal-deep: #045f6b;
+
+  /* --- 玻璃層的三個變數：面、邊、高光 --- */
+  --glass: rgba(170, 211, 224, 0.06);
+  --glass-strong: rgba(170, 211, 224, 0.11);
+  --glass-line: rgba(170, 211, 224, 0.20);
+  --glass-blur: blur(20px) saturate(150%);
+  /* 玻璃的厚度感來自內陰影：上緣一道白高光、下緣一道暗影，缺一不可。 */
+  --glass-bevel:
+    inset 0 1px 0 rgba(255, 255, 255, 0.22),
+    inset 0 -1px 0 rgba(0, 0, 0, 0.30);
+
+  color: var(--text);
+  background: var(--bg);
+}
+
+:root:has(.theme-cyber) { background: #0A0616; color-scheme: dark; }
+
+/* ---------------------------------------------------------------------------
+ * 背景：網格 + 三顆色票光暈 + 一層極淡掃描線
+ *
+ * 用固定定位的 .cyber-bg 而不是 body 的 background-attachment:fixed——
+ * iOS Safari 對 fixed 背景的處理會在捲動時抖動，獨立圖層穩定得多。
+ * ------------------------------------------------------------------------- */
+.theme-cyber .app-shell {
+  position: relative;
+  isolation: isolate;
+}
+
+.theme-cyber .cyber-bg {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background:
+    radial-gradient(120% 90% at 50% 0%, #17092B 0%, #0A0616 55%, #070410 100%);
+}
+
+.theme-cyber .cyber-grid {
+  position: absolute;
+  inset: -20%;
+  background-image:
+    linear-gradient(rgba(170, 211, 224, 0.055) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(170, 211, 224, 0.055) 1px, transparent 1px);
+  background-size: 54px 54px;
+  /* 遮罩讓網格往下淡出，不然它會一路畫到頁尾，把卡片邊緣切得很雜。 */
+  -webkit-mask-image: radial-gradient(90% 70% at 50% 8%, #000 0%, transparent 78%);
+  mask-image: radial-gradient(90% 70% at 50% 8%, #000 0%, transparent 78%);
+}
+
+.theme-cyber .cyber-glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(90px);
+}
+
+.theme-cyber .cyber-glow-1 {
+  width: 56vw; height: 56vw;
+  max-width: 620px; max-height: 620px;
+  top: -18vw; left: -12vw;
+  background: var(--magenta);
+  opacity: .38;
+}
+
+.theme-cyber .cyber-glow-2 {
+  width: 48vw; height: 48vw;
+  max-width: 540px; max-height: 540px;
+  top: 6vh; right: -16vw;
+  background: var(--teal);
+  opacity: .30;
+}
+
+.theme-cyber .cyber-glow-3 {
+  width: 64vw; height: 64vw;
+  max-width: 700px; max-height: 700px;
+  bottom: -26vw; left: 22vw;
+  background: var(--plum);
+  opacity: .42;
+}
+
+/* 掃描線刻意做得很淡（2% 白、3px 週期）。再濃一點就會和 Noto Sans TC
+   的細筆畫打架，中文字看起來會糊。 */
+.theme-cyber .cyber-scan {
+  position: absolute;
+  inset: 0;
+  background: repeating-linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.020) 0px,
+    rgba(255, 255, 255, 0.020) 1px,
+    transparent 1px,
+    transparent 3px
+  );
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .theme-cyber .cyber-glow-1 { animation: cyberDrift 26s ease-in-out infinite; }
+  .theme-cyber .cyber-glow-2 { animation: cyberDrift 32s ease-in-out infinite reverse; }
+  .theme-cyber .cyber-glow-3 { animation: cyberDrift 38s ease-in-out infinite; }
+}
+
+@keyframes cyberDrift {
+  0%, 100% { transform: translate3d(0, 0, 0) scale(1); }
+  50%      { transform: translate3d(4%, -3%, 0) scale(1.08); }
+}
+
+/* 三顆 90px 模糊的光暈一直在動，對手機 GPU 是不小的負擔（而且是持續的，
+   不是捲動時才發生）。小螢幕上停掉動畫、把模糊收到 60px——靜止的光暈
+   看起來差別不大，但電池差很多。 */
+@media (max-width: 640px) {
+  .theme-cyber .cyber-glow {
+    filter: blur(60px);
+    animation: none !important;
+  }
+  .theme-cyber .cyber-grid { background-size: 42px 42px; }
+}
+
+/* ---------------------------------------------------------------------------
+ * 版面外殼
+ * ------------------------------------------------------------------------- */
+/* 底色交給 <html> 與 .cyber-bg 兩層，body 自己不畫，
+   否則原本 body 上那組藍色 radial-gradient 會疊在賽博龐克背景上面。 */
+body.theme-cyber { background: transparent; }
+
+.theme-cyber .topbar {
+  background: rgba(14, 8, 26, 0.72);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  border-bottom: 1px solid var(--glass-line);
+  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.05), 0 12px 30px rgba(0, 0, 0, 0.35);
+}
+
+.theme-cyber .brand-mark {
+  background: linear-gradient(140deg, rgba(155, 73, 128, .55), rgba(13, 154, 162, .45));
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--glass-bevel);
+}
+
+.theme-cyber .brand-subtitle { color: rgba(170, 211, 224, 0.62); }
+
+.theme-cyber .line-pill {
+  color: #052B14;
+  background: linear-gradient(135deg, #6FE3A1, #06C755);
+  box-shadow: 0 6px 18px rgba(6, 199, 85, .25);
+}
+
+.theme-cyber .api-bar {
+  color: var(--muted);
+  background: rgba(14, 8, 26, 0.55);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  border-bottom: 1px solid var(--glass-line);
+}
+
+.theme-cyber .api-dot { background: #55607A; }
+.theme-cyber .api-dot.online { box-shadow: 0 0 10px rgba(6, 199, 85, .8); }
+
+/* 「這不是正式服務」的橫幅。深底上用琥珀描邊＋發光，維持它原本的刺眼程度。 */
+.theme-cyber .demo-banner {
+  border-color: rgba(255, 181, 71, .55);
+  background: rgba(255, 181, 71, .10);
+  box-shadow: 0 0 0 1px rgba(255, 181, 71, .12), 0 10px 28px rgba(0, 0, 0, .35);
+}
+
+.theme-cyber .demo-banner strong { color: #FFD89A; }
+.theme-cyber .demo-banner span { color: #E8C48F; }
+
+/* ---------------------------------------------------------------------------
+ * Hero
+ * ------------------------------------------------------------------------- */
+.theme-cyber .hero {
+  border: 1px solid var(--glass-line);
+  background:
+    linear-gradient(135deg, rgba(97, 53, 95, .72), rgba(4, 95, 107, .68)),
+    rgba(10, 6, 22, .5);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow:
+    var(--glass-bevel),
+    0 26px 60px rgba(0, 0, 0, .5),
+    0 0 46px rgba(155, 73, 128, .18);
+}
+
+.theme-cyber .hero .eyebrow {
+  color: var(--ice);
+  text-shadow: 0 0 14px rgba(170, 211, 224, .45);
+}
+
+/* 兩行標題（AI情Line的太快／就像龍捲風），行距收一點才不會太散。 */
+.theme-cyber .hero h1 {
+  line-height: 1.18;
+  color: #FFFFFF;
+  text-shadow: 0 0 34px rgba(170, 211, 224, .22);
+}
+
+/* 漸層字單獨包在 @supports 裡：color 要設成 transparent 才看得到漸層，
+   萬一 background-clip:text 沒生效，標題就會整行消失。 */
+@supports ((background-clip: text) or (-webkit-background-clip: text)) {
+  .theme-cyber .hero h1 {
+    background: linear-gradient(100deg, #FFFFFF 0%, var(--ice) 45%, #7FE3EA 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
+  }
+}
+
+.theme-cyber .hero p { color: rgba(236, 245, 248, .80); }
+
+.theme-cyber .hero-badges span {
+  border-color: var(--glass-line);
+  background: rgba(170, 211, 224, .10);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .18);
+}
+
+.theme-cyber .hero-orb-1 { background: var(--magenta); opacity: .5; }
+.theme-cyber .hero-orb-2 { background: var(--teal); opacity: .3; }
+
+/* ---------------------------------------------------------------------------
+ * 卡片：全部換成玻璃面
+ * ------------------------------------------------------------------------- */
+.theme-cyber .panel,
+.theme-cyber .progress-card {
+  border: 1px solid var(--glass-line);
+  background: linear-gradient(160deg, var(--glass-strong), var(--glass)), rgba(14, 8, 26, .55);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-bevel), var(--shadow);
+}
+
+.theme-cyber .panel h2,
+.theme-cyber .panel h3,
+.theme-cyber .timeline-card h3,
+.theme-cyber .review-group h3,
+.theme-cyber .form-section h3 { color: var(--text); }
+
+.theme-cyber .section-kicker,
+.theme-cyber .panel .eyebrow { color: var(--ice); letter-spacing: .14em; }
+
+.theme-cyber .shield-icon {
+  background: linear-gradient(140deg, rgba(155, 73, 128, .40), rgba(13, 154, 162, .34));
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--glass-bevel);
+}
+
+/* 步驟列 */
+.theme-cyber .step { color: #7E8AA0; }
+.theme-cyber .step-dot {
+  border-color: rgba(170, 211, 224, .22);
+  background: rgba(170, 211, 224, .06);
+  color: #9FB0C2;
+}
+.theme-cyber .step.active .step-dot {
+  border-color: var(--teal);
+  background: linear-gradient(140deg, var(--teal), var(--teal-deep));
+  color: #04262A;
+  box-shadow: 0 0 0 6px rgba(13, 154, 162, .16), 0 0 20px rgba(13, 154, 162, .55);
+}
+.theme-cyber .step.done .step-dot {
+  border-color: rgba(6, 199, 85, .7);
+  background: rgba(6, 199, 85, .85);
+  color: #04240F;
+}
+.theme-cyber .step.active, .theme-cyber .step.done { color: var(--ice); }
+.theme-cyber .step-line { background: rgba(170, 211, 224, .16); }
+.theme-cyber .step-line.done { background: rgba(6, 199, 85, .7); }
+
+/* 影片區 */
+.theme-cyber .video-card {
+  border-color: var(--glass-line);
+  background: #0B0718;
+}
+.theme-cyber .video-frame { background: linear-gradient(180deg, #14082A, #04333A); }
+.theme-cyber .video-frame video { background: #0B0718; }
+.theme-cyber .video-placeholder {
+  background:
+    radial-gradient(circle at 50% 20%, rgba(155, 73, 128, .45), transparent 34%),
+    linear-gradient(180deg, #14082A, #04333A);
+}
+.theme-cyber .watch-status {
+  background: rgba(170, 211, 224, .05);
+  border-top: 1px solid var(--glass-line);
+}
+.theme-cyber .watch-copy strong { color: var(--ice); }
+.theme-cyber .watch-copy span.done { color: #5FE0A0; }
+.theme-cyber .progress-track { background: rgba(170, 211, 224, .12); }
+.theme-cyber .progress-fill {
+  background: linear-gradient(90deg, var(--magenta), var(--teal));
+  box-shadow: 0 0 14px rgba(13, 154, 162, .6);
+}
+
+/* 說明框 */
+.theme-cyber .info-callout,
+.theme-cyber .line-notice,
+.theme-cyber .privacy-callout {
+  border: 1px solid var(--glass-line);
+  background: linear-gradient(140deg, rgba(13, 154, 162, .14), rgba(155, 73, 128, .10));
+}
+
+.theme-cyber .info-callout p,
+.theme-cyber .line-notice p,
+.theme-cyber .privacy-callout p { color: rgba(236, 245, 248, .74); }
+
+/* 面板本身已經對背景做過 backdrop-filter，裡面這些卡片再模糊一次，
+   模糊到的是已經攤平的面板，畫面幾乎沒有差別，卻會在手機上多出十幾層
+   合成。所以內層一律只用半透明色，模糊留給最外層的玻璃面。 */
+.theme-cyber .legal-block,
+.theme-cyber .grant-row,
+.theme-cyber .doc-brief li,
+.theme-cyber .review-group,
+.theme-cyber .security-result,
+.theme-cyber .eligibility-result,
+.theme-cyber .timeline-card,
+.theme-cyber .quiz-key {
+  border: 1px solid var(--glass-line);
+  background: var(--glass);
+}
+
+.theme-cyber .legal-block summary { color: var(--ice); }
+.theme-cyber .legal-block ol { color: rgba(236, 245, 248, .72); }
+.theme-cyber .legal-block strong { color: var(--ice); }
+.theme-cyber .fact-list dt { color: var(--muted); }
+.theme-cyber .fact-list dd { color: var(--text); }
+.theme-cyber .doc-tag {
+  color: #BFF4F7;
+  background: rgba(13, 154, 162, .20);
+  border: 1px solid rgba(13, 154, 162, .35);
+}
+
+.theme-cyber .security-result.complete,
+.theme-cyber .eligibility-result.complete {
+  border-color: rgba(13, 154, 162, .45);
+  background: rgba(13, 154, 162, .14);
+  box-shadow: 0 0 22px rgba(13, 154, 162, .16);
+}
+
+.theme-cyber .eligibility-result.bad {
+  border-color: rgba(255, 113, 131, .45);
+  background: rgba(255, 113, 131, .12);
+}
+
+.theme-cyber .result-icon {
+  background: rgba(170, 211, 224, .12);
+  border: 1px solid var(--glass-line);
+  box-shadow: var(--glass-bevel);
+}
+
+.theme-cyber .security-result strong,
+.theme-cyber .eligibility-result strong { color: var(--text); }
+
+/* ---------------------------------------------------------------------------
+ * 可勾選／可點的卡片
+ * ------------------------------------------------------------------------- */
+.theme-cyber .check-card,
+.theme-cyber .quiz-item,
+.theme-cyber .quiz-option,
+.theme-cyber .qual-card,
+.theme-cyber .upload-item {
+  border: 1px solid var(--glass-line);
+  background: linear-gradient(150deg, var(--glass-strong), var(--glass));
+  box-shadow: var(--glass-bevel);
+}
+
+.theme-cyber .check-card:hover,
+.theme-cyber .qual-card:hover,
+.theme-cyber .quiz-option:hover {
+  border-color: rgba(170, 211, 224, .38);
+  background: linear-gradient(150deg, rgba(170, 211, 224, .16), rgba(170, 211, 224, .08));
+}
+
+.theme-cyber .check-card small,
+.theme-cyber .qual-card small,
+.theme-cyber .upload-copy small,
+.theme-cyber .review-docs small,
+.theme-cyber .timeline-row small,
+.theme-cyber .quiz-intro,
+.theme-cyber .panel-header p,
+.theme-cyber .section-note,
+.theme-cyber .review-note { color: var(--muted); }
+
+.theme-cyber .check-box {
+  border-color: rgba(170, 211, 224, .32);
+  background: rgba(170, 211, 224, .08);
+}
+
+.theme-cyber .check-card:has(input:checked) {
+  border-color: rgba(13, 154, 162, .55);
+  background: linear-gradient(150deg, rgba(13, 154, 162, .22), rgba(13, 154, 162, .08));
+  box-shadow: var(--glass-bevel), 0 0 24px rgba(13, 154, 162, .18);
+}
+
+.theme-cyber .check-card input:checked + .check-box {
+  border-color: var(--teal);
+  color: #04262A;
+  background: linear-gradient(140deg, #4FD8DF, var(--teal));
+  box-shadow: 0 0 16px rgba(13, 154, 162, .6);
+}
+
+.theme-cyber .qual-card.active {
+  border-color: rgba(13, 154, 162, .6);
+  background: linear-gradient(150deg, rgba(13, 154, 162, .22), rgba(155, 73, 128, .12));
+  box-shadow: var(--glass-bevel), 0 0 0 4px rgba(13, 154, 162, .12), 0 0 26px rgba(13, 154, 162, .2);
+}
+
+.theme-cyber .radio-ui {
+  border-color: rgba(170, 211, 224, .38);
+  background: rgba(170, 211, 224, .08);
+}
+.theme-cyber .qual-card.active .radio-ui {
+  border: 5px solid var(--teal);
+  box-shadow: 0 0 14px rgba(13, 154, 162, .6);
+}
+.theme-cyber .qual-value {
+  color: var(--ice);
+  text-shadow: 0 0 18px rgba(170, 211, 224, .35);
+}
+
+/* 小測驗的對錯：深底上改用青綠與亮紅，符號（✓／✕）照舊，不只靠顏色。 */
+.theme-cyber .quiz-question { color: var(--text); }
+.theme-cyber .quiz-number {
+  color: #BFF4F7;
+  background: rgba(13, 154, 162, .22);
+}
+.theme-cyber .quiz-text { color: rgba(236, 245, 248, .88); }
+.theme-cyber .quiz-key { color: var(--muted); }
+
+.theme-cyber .quiz-item.correct,
+.theme-cyber .quiz-option.is-correct {
+  border-color: rgba(95, 224, 160, .5);
+  background: linear-gradient(150deg, rgba(95, 224, 160, .18), rgba(13, 154, 162, .08));
+}
+.theme-cyber .quiz-option.is-correct .quiz-key {
+  border-color: #5FE0A0;
+  background: #5FE0A0;
+  color: #04240F;
+}
+.theme-cyber .quiz-option.is-correct::after { color: #7CF0B8; }
+.theme-cyber .quiz-item.correct .quiz-feedback { color: #7CF0B8; }
+
+.theme-cyber .quiz-item.wrong,
+.theme-cyber .quiz-option.is-wrong {
+  border-color: rgba(255, 113, 131, .5);
+  background: linear-gradient(150deg, rgba(255, 113, 131, .16), rgba(97, 53, 95, .10));
+}
+.theme-cyber .quiz-option.is-wrong .quiz-key {
+  border-color: var(--danger);
+  background: var(--danger);
+  color: #2A0309;
+}
+
+.theme-cyber .quiz-option:has(input:focus-visible) {
+  border-color: var(--teal);
+  box-shadow: 0 0 0 4px rgba(13, 154, 162, .22);
+}
+
+/* ---------------------------------------------------------------------------
+ * 表單欄位：liquid glass 的主角
+ *
+ * 一個玻璃面由四層疊出來：半透明漸層（面）＋ backdrop-filter（折射）
+ * ＋ 上下內陰影（厚度）＋ 一圈淡邊（輪廓）。少任何一層都會變成「深灰方塊」。
+ * ------------------------------------------------------------------------- */
+.theme-cyber .field span { color: var(--ice); }
+
+.theme-cyber .field input,
+.theme-cyber .field select {
+  border: 1px solid var(--glass-line);
+  border-radius: 16px;
+  color: var(--text);
+  background:
+    linear-gradient(150deg, rgba(170, 211, 224, .13), rgba(155, 73, 128, .07));
+  backdrop-filter: blur(18px) saturate(160%);
+  -webkit-backdrop-filter: blur(18px) saturate(160%);
+  box-shadow: var(--glass-bevel), 0 8px 22px rgba(0, 0, 0, .28);
+}
+
+/* 原本的箭頭 SVG 描邊是 #687087，在玻璃上幾乎看不見，換成冰藍。 */
+.theme-cyber .field select {
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' fill='none' stroke='%23aad3e0' stroke-width='2' stroke-linecap='round'/></svg>"),
+    linear-gradient(150deg, rgba(170, 211, 224, .13), rgba(155, 73, 128, .07));
+  background-repeat: no-repeat, no-repeat;
+  background-position: right 16px center, 0 0;
+  background-size: 12px 8px, cover;
+}
+
+.theme-cyber .field input::placeholder { color: rgba(170, 211, 224, .40); }
+
+.theme-cyber .field input:focus,
+.theme-cyber .field select:focus {
+  border-color: rgba(13, 154, 162, .75);
+  background-image:
+    linear-gradient(150deg, rgba(13, 154, 162, .20), rgba(170, 211, 224, .10));
+  box-shadow:
+    var(--glass-bevel),
+    0 0 0 4px rgba(13, 154, 162, .18),
+    0 0 26px rgba(13, 154, 162, .30);
+}
+
+/* select 的箭頭是 background-image 的第一層，聚焦時只能換掉第二層（面），
+   用 background 簡寫會連箭頭一起洗掉，所以這裡要把兩層一起重寫。 */
+.theme-cyber .field select:focus {
+  background-image:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='12' height='8'><path d='M1 1l5 5 5-5' fill='none' stroke='%23aad3e0' stroke-width='2' stroke-linecap='round'/></svg>"),
+    linear-gradient(150deg, rgba(13, 154, 162, .20), rgba(170, 211, 224, .10));
+}
+
+.theme-cyber .field input[readonly] {
+  color: var(--muted);
+  background: rgba(255, 255, 255, .04);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .08);
+}
+
+/* select 的下拉選單是作業系統畫的，要單獨給深色，不然是白底白字。 */
+.theme-cyber .field select option {
+  color: #ECF5F8;
+  background: #14092A;
+}
+
+.theme-cyber .field-hint { color: var(--muted); }
+.theme-cyber .field-hint.bad { color: var(--danger); }
+.theme-cyber .field-hint.good { color: #7CF0B8; }
+
+.theme-cyber .mask-wrap.is-masked input { caret-color: var(--teal); }
+.theme-cyber .mask-wrap .mask-overlay { color: var(--text); }
+
+.theme-cyber .form-section + .form-section { border-top-color: var(--glass-line); }
+
+.theme-cyber .line-login {
+  color: #BFF4F7;
+  background: rgba(13, 154, 162, .22);
+  border: 1px solid rgba(13, 154, 162, .35);
+}
+
+/* 試算結果卡 */
+.theme-cyber .estimate-card {
+  border: 1px solid var(--glass-line);
+  background: linear-gradient(135deg, rgba(97, 53, 95, .85), rgba(4, 95, 107, .8));
+  box-shadow: var(--glass-bevel), 0 18px 44px rgba(0, 0, 0, .45), 0 0 34px rgba(155, 73, 128, .18);
+}
+
+/* ---------------------------------------------------------------------------
+ * 上傳
+ * ------------------------------------------------------------------------- */
+.theme-cyber .upload-item.ok {
+  border-color: rgba(95, 224, 160, .45);
+  background: linear-gradient(150deg, rgba(95, 224, 160, .16), rgba(13, 154, 162, .06));
+}
+
+.theme-cyber .upload-item.flagged {
+  border-color: rgba(255, 181, 71, .55);
+  background: linear-gradient(150deg, rgba(255, 181, 71, .14), rgba(97, 53, 95, .08));
+}
+
+.theme-cyber .upload-file {
+  background: rgba(10, 6, 22, .45);
+  border: 1px solid var(--glass-line);
+  color: rgba(236, 245, 248, .82);
+}
+
+.theme-cyber .upload-warning {
+  border-color: rgba(255, 181, 71, .45);
+  background: rgba(10, 6, 22, .45);
+}
+.theme-cyber .upload-warning strong { color: #FFD89A; }
+.theme-cyber .upload-warning small { color: var(--muted); }
+.theme-cyber .upload-warning-block { color: #FFC978; }
+
+.theme-cyber .upload-pick {
+  border-color: rgba(13, 154, 162, .6);
+  color: #BFF4F7;
+  background: rgba(13, 154, 162, .14);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14);
+}
+.theme-cyber .upload-pick:hover {
+  background: rgba(13, 154, 162, .26);
+  box-shadow: 0 0 20px rgba(13, 154, 162, .3);
+}
+
+.theme-cyber .upload-offline {
+  border-color: rgba(255, 181, 71, .5);
+  background: rgba(255, 181, 71, .10);
+}
+.theme-cyber .upload-offline p { color: #E8C48F; }
+
+.theme-cyber .ghost-btn {
+  border-color: var(--glass-line);
+  background: rgba(170, 211, 224, .12);
+  color: var(--text);
+}
+
+/* ---------------------------------------------------------------------------
+ * 確認頁、回執、時間軸
+ * ------------------------------------------------------------------------- */
+.theme-cyber .review-docs li.ok > span { color: #5FE0A0; }
+.theme-cyber .review-docs li.missing > span { color: var(--warning); }
+
+.theme-cyber .submit-error {
+  border-color: rgba(255, 113, 131, .45);
+  background: rgba(255, 113, 131, .12);
+}
+.theme-cyber .submit-error p { color: rgba(236, 245, 248, .8); }
+
+.theme-cyber .success-icon {
+  background: linear-gradient(140deg, #5FE0A0, var(--teal));
+  color: #04240F;
+  box-shadow: 0 16px 40px rgba(13, 154, 162, .35), 0 0 40px rgba(95, 224, 160, .3);
+}
+
+.theme-cyber .receipt {
+  border: 1px solid var(--glass-line);
+  background: linear-gradient(160deg, var(--glass-strong), var(--glass)), rgba(14, 8, 26, .6);
+  backdrop-filter: var(--glass-blur);
+  -webkit-backdrop-filter: var(--glass-blur);
+  box-shadow: var(--glass-bevel), var(--shadow);
+}
+
+.theme-cyber .receipt-head { border-bottom-color: rgba(170, 211, 224, .35); }
+.theme-cyber .receipt-title { color: var(--ice); }
+.theme-cyber .receipt .fact-list dd strong { color: var(--ice); }
+.theme-cyber .receipt-note { border-top-color: var(--glass-line); color: var(--muted); }
+.theme-cyber .receipt-stamp {
+  color: #FFC978;
+  border-color: rgba(255, 181, 71, .7);
+  box-shadow: 0 0 20px rgba(255, 181, 71, .18);
+}
+
+.theme-cyber .timeline-row::after { background: rgba(170, 211, 224, .18); }
+.theme-cyber .timeline-dot {
+  border-color: rgba(170, 211, 224, .3);
+  background: rgba(10, 6, 22, .8);
+}
+.theme-cyber .timeline-row.done .timeline-dot {
+  border-color: #5FE0A0;
+  background: #5FE0A0;
+  color: #04240F;
+}
+.theme-cyber .timeline-row.active .timeline-dot {
+  border: 7px solid var(--teal);
+  box-shadow: 0 0 0 5px rgba(13, 154, 162, .16), 0 0 20px rgba(13, 154, 162, .55);
+}
+
+.theme-cyber .line-notice {
+  background: linear-gradient(140deg, rgba(6, 199, 85, .16), rgba(13, 154, 162, .08));
+}
+.theme-cyber .line-bubble {
+  background: linear-gradient(140deg, #6FE3A1, #06C755);
+  color: #042712;
+  box-shadow: 0 0 20px rgba(6, 199, 85, .3);
+}
+.theme-cyber .line-bind-btn {
+  background: linear-gradient(135deg, #12D96A, #06A947);
+  box-shadow: 0 12px 28px rgba(6, 199, 85, .3), inset 0 1px 0 rgba(255, 255, 255, .25);
+}
+.theme-cyber .line-bind-btn:hover { background: linear-gradient(135deg, #18E877, #07BC4F); }
+.theme-cyber .line-bind-fallback { color: var(--muted); }
+
+/* ---------------------------------------------------------------------------
+ * 按鈕與固定底列
+ * ------------------------------------------------------------------------- */
+.theme-cyber .text-btn { color: var(--ice); }
+.theme-cyber .text-btn:hover { color: #FFFFFF; }
+
+.theme-cyber .sticky-footer {
+  border-top: 1px solid var(--glass-line);
+  background: rgba(10, 6, 22, .78);
+  backdrop-filter: blur(22px) saturate(150%);
+  -webkit-backdrop-filter: blur(22px) saturate(150%);
+  box-shadow: 0 -12px 34px rgba(0, 0, 0, .45);
+}
+
+.theme-cyber .back-btn,
+.theme-cyber .secondary-btn {
+  border-color: var(--glass-line);
+  color: var(--ice);
+  background: rgba(170, 211, 224, .10);
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, .14);
+}
+
+.theme-cyber .back-btn:hover,
+.theme-cyber .secondary-btn:hover { background: rgba(170, 211, 224, .18); }
+
+.theme-cyber .primary-btn {
+  color: #02201F;
+  background: linear-gradient(135deg, #2FD3D9 0%, var(--teal) 45%, var(--magenta) 140%);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .35),
+    0 12px 28px rgba(13, 154, 162, .32),
+    0 0 26px rgba(13, 154, 162, .25);
+}
+
+.theme-cyber .primary-btn:hover:not(:disabled) {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, .4),
+    0 16px 34px rgba(13, 154, 162, .4),
+    0 0 36px rgba(155, 73, 128, .3);
+}
+
+.theme-cyber .primary-btn:disabled {
+  color: rgba(236, 245, 248, .35);
+  background: rgba(170, 211, 224, .08);
+  border: 1px solid var(--glass-line);
+  box-shadow: none;
+}
+
+.theme-cyber .toast {
+  color: var(--text);
+  background: rgba(20, 9, 42, .92);
+  border: 1px solid var(--glass-line);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  box-shadow: 0 14px 34px rgba(0, 0, 0, .5);
+}
+
+/* 鍵盤焦點。深底上要夠亮才看得見，統一用冰藍。 */
+.theme-cyber a:focus-visible,
+.theme-cyber button:focus-visible,
+.theme-cyber summary:focus-visible,
+.theme-cyber input:focus-visible,
+.theme-cyber select:focus-visible {
+  outline: 2px solid var(--ice);
+  outline-offset: 3px;
+}
+
+/* backdrop-filter 沒支援的瀏覽器（多半是舊版 Firefox）會看到半透明面直接疊在
+   光暈上，字會糊。這裡把玻璃面補成接近不透明的深紫。 */
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .theme-cyber .panel,
+  .theme-cyber .progress-card,
+  .theme-cyber .receipt,
+  .theme-cyber .topbar,
+  .theme-cyber .api-bar,
+  .theme-cyber .sticky-footer,
+  .theme-cyber .toast {
+    background: #160C2C;
+  }
+
+  /* 欄位要比面板亮一階，不然輸入框的輪廓會消失在卡片裡。 */
+  .theme-cyber .field input,
+  .theme-cyber .field select { background-color: #241738; }
+}
+
+/* ---------------------------------------------------------------------------
+ * 列印
+ *
+ * 回執是唯一會被印出來的東西。上面的規則把文字都改成淺色，直接印會是
+ * 白紙白字，所以這裡整組打回深字淺底——玻璃、光暈、發光在紙上沒有意義。
+ * ------------------------------------------------------------------------- */
+@media print {
+  .theme-cyber { background: #FFFFFF; color: #171A2B; }
+  .theme-cyber .cyber-bg { display: none !important; }
+
+  .theme-cyber .receipt,
+  .theme-cyber .receipt * {
+    color: #171A2B !important;
+    background: #FFFFFF !important;
+    box-shadow: none !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    text-shadow: none !important;
+  }
+
+  .theme-cyber .receipt { border: 1px solid #333 !important; }
+  .theme-cyber .receipt-head { border-bottom: 2px solid #171A2B !important; }
+  .theme-cyber .receipt-title,
+  .theme-cyber .receipt .fact-list dd strong { color: #171A2B !important; }
+  .theme-cyber .receipt-sub,
+  .theme-cyber .receipt-note,
+  .theme-cyber .fact-list dt { color: #555 !important; }
+  .theme-cyber .receipt-stamp { color: #B26A00 !important; border-color: #B26A00 !important; }
+}

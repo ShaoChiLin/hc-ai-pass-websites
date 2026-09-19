@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
-  <meta name="theme-color" content="#151B4D" />
+  <meta name="theme-color" content="#0A0616" />
   <title>新竹市青年 AI 數位工具補助｜線上申請（示範）</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -11,10 +11,20 @@
   <!-- ?v= 是給 GitHub Pages 用的。它對靜態檔會回 max-age=600，改版後十分鐘內回訪的人
        會拿到「新的 index.html ＋ 快取裡的舊 app.js」：畫面是新的七步流程，跑的卻是舊的
        三步程式，第一頁勾完同意事項按鈕照樣反灰。每次改這兩支檔就把日期一起改掉。 -->
-  <link rel="stylesheet" href="./styles.css?v=20260919-strict-a" />
+  <link rel="stylesheet" href="./styles.css?v=20260919-cyberglass-a" />
 </head>
-<body>
+<!-- theme-cyber：賽博龐克／liquid glass 外觀層，樣式定義在 styles.css 檔尾。
+     刻意掛在 <body> 而不是 :root，是因為 line-bind.html 共用同一份 styles.css，
+     那一頁要維持淺色（它多半在 LINE 內建瀏覽器裡開，深色毛玻璃在那邊不可靠）。 -->
+<body class="theme-cyber">
   <div class="app-shell">
+    <div class="cyber-bg" aria-hidden="true">
+      <span class="cyber-grid"></span>
+      <span class="cyber-glow cyber-glow-1"></span>
+      <span class="cyber-glow cyber-glow-2"></span>
+      <span class="cyber-glow cyber-glow-3"></span>
+      <span class="cyber-scan"></span>
+    </div>
     <header class="topbar">
       <div class="brand">
         <div class="brand-mark">🧭</div>
@@ -47,7 +57,7 @@
         <div class="hero-orb hero-orb-2"></div>
         <div class="hero-content">
           <div class="eyebrow">竹青 AI 安心辦</div>
-          <h1>懂資安，再出發。</h1>
+          <h1>AI情Line的太快<br>就像龍捲風</h1>
           <p>從申請須知、資格預檢、資安宣導到線上收件，一次走完，進度由 LINE 通知。</p>
           <div class="hero-badges">
             <span>🛡️ AI 資安檢核</span>
