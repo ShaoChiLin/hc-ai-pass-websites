@@ -11,7 +11,7 @@
   <!-- ?v= 是給 GitHub Pages 用的。它對靜態檔會回 max-age=600，改版後十分鐘內回訪的人
        會拿到「新的 index.html ＋ 快取裡的舊 app.js」：畫面是新的七步流程，跑的卻是舊的
        三步程式，第一頁勾完同意事項按鈕照樣反灰。每次改這兩支檔就把日期一起改掉。 -->
-  <link rel="stylesheet" href="./styles.css?v=20260919-ocr-b" />
+  <link rel="stylesheet" href="./styles.css?v=20260919-ocr-c" />
 </head>
 <body>
   <div class="app-shell">
@@ -733,11 +733,11 @@
   <div class="toast" id="toast"></div>
 
   <!-- 提供 app.js 的 uploadDocument() 所用的 UploadImageCheck。 -->
-  <script src="./image-check.js?v=20260919-ocr-b"></script>
-  <script src="./app.js?v=20260919-ocr-b"></script>
+  <script src="./image-check.js?v=20260919-ocr-c"></script>
+  <script src="./app.js?v=20260919-ocr-c"></script>
   <!-- 掛在 app.js 之後：遮蔽層只包住既有的 input，不改值，拿掉也不影響表單流程。 -->
-  <script src="./demo-mask.js?v=20260919-ocr-b"></script>
+  <script src="./demo-mask.js?v=20260919-ocr-c"></script>
   <!-- 掛在 app.js 之後：只改 STEP 3 的畫面，關卡仍由 app.js 讀 .security-check 決定。 -->
-  <script src="./security-quiz.js?v=20260919-ocr-b"></script>
+  <script src="./security-quiz.js?v=20260919-ocr-c"></script>
 </body>
 </html>

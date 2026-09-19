@@ -50,14 +50,15 @@ const FALLBACK_PROGRAM = {
     },
   },
   documents: [
-    { docType: '身分證明', label: '國民身分證正反面', note: '正反面請合併為一個 PDF 或一張照片後上傳。', required: true },
-    { docType: '購買憑證', label: '統一發票或收據', note: '需可辨識品項、金額與日期；抬頭須為申請人本人。', required: true },
+    { docType: '身分證正面', label: '國民身分證正面', note: '有照片、姓名與統一編號的那一面。', required: true },
+    { docType: '身分證反面', label: '國民身分證反面', note: '有父母姓名、役別與住址的那一面。', required: true },
+    { docType: '購買證明', label: '購買證明', note: '統一發票、收據，或線上訂閱的付款收據截圖都可以；需看得到品項、金額與日期。', required: true },
     { docType: '帳戶資料', label: '存摺封面影本', note: '戶名須為申請人本人，需可辨識金融機構代號與帳號。', required: true },
     { docType: '低收入戶證明', label: '低收入戶或中低收入戶證明', note: '僅申請 90% 補助者需檢附，有效期間需涵蓋申請日。', required: false, onlyFor: 'lowincome' },
   ],
   upload: {
     maxFileBytes: 5 * 1024 * 1024,
-    acceptedMimeTypes: ['image/jpeg', 'image/png', 'application/pdf'],
+    acceptedMimeTypes: ['image/jpeg', 'image/png', 'image/heic', 'application/pdf'],
   },
 };
 
@@ -88,6 +89,14 @@ const state = {
    * 而且使用者關掉頁面後本來就該重選一次檔，不該默默留著一張被質疑過的照片。
    */
   quality: {},
+  /**
+   * 伺服器讀過內容後退回的檔案，key 是 docType，值多帶一個 file 供重送。
+   *
+   * 和 quality 的差別只在誰判的（瀏覽器看畫質、伺服器看文字），退回的方式一樣：
+   * 檔案沒有被收下，這一格還是空的，使用者要嘛換一張，要嘛按「仍要使用這張」
+   * 帶 override 重送。同樣有 File 物件，所以一樣不進 saveDraft()。
+   */
+  review: {},
   submitting: false,
 };
 
@@ -818,15 +827,28 @@ function carryEligibilityIntoForm() {
  * ------------------------------------------------------------------------- */
 
 /** 檔頭的魔術位元組。副檔名與瀏覽器給的 MIME 都可能是錯的，只有內容不會騙人。 */
+const ASCII = (text) => [...text].map((c) => c.charCodeAt(0));
+
 const SIGNATURES = [
   { mimeType: 'image/jpeg', magic: [0xff, 0xd8, 0xff] },
   { mimeType: 'image/png', magic: [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a] },
   { mimeType: 'application/pdf', magic: [0x25, 0x50, 0x44, 0x46, 0x2d] },
+  // iPhone 拍的就是這個。檔頭從第 4 個位元組開始，'ftyp' 後面那 4 碼是品牌碼。
+  // 伺服器收到之後會轉成 JPEG，這裡只負責認出來、別擋下來。
+  ...['heic', 'heix', 'hevc', 'hevx', 'mif1', 'msf1'].map((brand) => ({
+    mimeType: 'image/heic',
+    offset: 4,
+    magic: [...ASCII('ftyp'), ...ASCII(brand)],
+  })),
 ];
 
 function sniffType(bytes) {
   if (!bytes || bytes.length < 8) return null;
-  return SIGNATURES.find((sig) => sig.magic.every((byte, i) => bytes[i] === byte)) ?? null;
+  return (
+    SIGNATURES.find((sig) =>
+      sig.magic.every((byte, i) => bytes[(sig.offset ?? 0) + i] === byte),
+    ) ?? null
+  );
 }
 
 function renderUploadList() {
@@ -837,8 +859,9 @@ function renderUploadList() {
       const file = state.files[doc.docType];
       const done = Boolean(file);
       const flagged = state.quality[doc.docType];
+      const review = state.review[doc.docType];
       return `
-        <div class="upload-item ${done ? 'ok' : ''} ${flagged ? 'flagged' : ''}" data-doc="${escapeHtml(doc.docType)}">
+        <div class="upload-item ${done ? 'ok' : ''} ${flagged || review ? 'flagged' : ''}" data-doc="${escapeHtml(doc.docType)}">
           <div class="upload-copy">
             <strong>${escapeHtml(doc.label)}</strong>
             <span class="doc-tag">${doc.required ? '必備' : '低收／中低收適用'}</span>
@@ -854,12 +877,20 @@ function renderUploadList() {
                    <button class="text-btn upload-anyway" type="button">這張沒問題，仍要上傳</button>
                  </div>`
               : ''}
+            ${review
+              ? `<div class="upload-warning">
+                   <strong>⚠️ ${escapeHtml(review.message)}</strong>
+                   <small>${escapeHtml(review.hint)}</small>
+                   <small class="upload-warning-file">這個檔案沒有被收下：${escapeHtml(review.file.name)}　${formatBytes(review.file.size)}</small>
+                   <button class="text-btn review-anyway" type="button">我確認沒傳錯，仍要使用這張</button>
+                 </div>`
+              : ''}
             <div class="upload-error" hidden></div>
           </div>
           <div class="upload-actions">
             <label class="ghost-btn upload-pick">
-              ${flagged ? '重新選擇' : done ? '重新上傳' : '選擇檔案'}
-              <input type="file" accept="image/jpeg,image/png,application/pdf" hidden>
+              ${flagged || review ? '重新選擇' : done ? '重新上傳' : '選擇檔案'}
+              <input type="file" accept="image/jpeg,image/png,image/heic,image/heif,.heic,.heif,application/pdf" hidden>
             </label>
             ${done ? '<button class="text-btn upload-remove" type="button">移除</button>' : ''}
           </div>
@@ -875,6 +906,14 @@ function renderUploadList() {
       if (file) uploadDocument(docType, file, item);
     });
     item.querySelector('.upload-remove')?.addEventListener('click', () => removeDocument(docType));
+    item.querySelector('.review-anyway')?.addEventListener('click', () => {
+      const rejected = state.review[docType];
+      if (!rejected) return;
+      delete state.review[docType];
+      renderUploadList();
+      const target = uploadList.querySelector(`.upload-item[data-doc="${CSS.escape(docType)}"]`);
+      sendDocument(docType, rejected.file, target, { override: true });
+    });
     item.querySelector('.upload-anyway')?.addEventListener('click', () => {
       const flagged = state.quality[docType];
       if (!flagged) return;
@@ -921,6 +960,7 @@ async function ensureDraft(base) {
 async function uploadDocument(docType, file, item) {
   showUploadError(item, '');
   delete state.quality[docType];
+  delete state.review[docType];
 
   const base = readApiBase();
   if (!base) {
@@ -944,7 +984,7 @@ async function uploadDocument(docType, file, item) {
   sendDocument(docType, file, item);
 }
 
-async function sendDocument(docType, file, item) {
+async function sendDocument(docType, file, item, { override = false } = {}) {
   const base = readApiBase();
   if (!base || !item) return;
 
@@ -952,7 +992,7 @@ async function sendDocument(docType, file, item) {
   // 先在本機比對檔頭。送出去才被退回的話，使用者要等一趟網路來回才知道選錯檔。
   const sig = sniffType(new Uint8Array(buffer));
   if (!sig) {
-    showUploadError(item, '只接受 JPG、PNG 或 PDF 檔。副檔名改掉不算數。');
+    showUploadError(item, '只接受 JPG、PNG、HEIC 或 PDF 檔。認的是檔案內容，改副檔名沒有用。');
     return;
   }
 
@@ -960,7 +1000,7 @@ async function sendDocument(docType, file, item) {
 
   try {
     const draftId = await ensureDraft(base);
-    const query = `docType=${encodeURIComponent(docType)}&filename=${encodeURIComponent(file.name)}`;
+    const query = `docType=${encodeURIComponent(docType)}&filename=${encodeURIComponent(file.name)}${override ? '&override=1' : ''}`;
 
     const response = await fetch(`${base}/api/applications/drafts/${draftId}/files?${query}`, {
       method: 'POST',
@@ -977,9 +1017,17 @@ async function sendDocument(docType, file, item) {
       state.files = {};
       throw new Error('上傳暫存已過期，請再上傳一次。');
     }
+    // 422：伺服器讀過內容，認定這張不是這一格要的東西，檔案沒有被收下。
+    // 和其他錯誤分開處理，因為這個要連同「仍要使用這張」的退路一起顯示。
+    if (response.status === 422 && data.review) {
+      state.review[docType] = { ...data.review, file };
+      renderUploadList();
+      return;
+    }
     if (!response.ok) throw new Error(data.error || `伺服器回應 ${response.status}`);
 
     state.files[docType] = data.file;
+    delete state.review[docType];
     renderUploadList();
     updateFooter();
     saveDraft();
@@ -998,6 +1046,7 @@ async function removeDocument(docType) {
 
   delete state.files[docType];
   delete state.quality[docType];
+  delete state.review[docType];
   renderUploadList();
   updateFooter();
   saveDraft();

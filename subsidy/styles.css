@@ -1082,7 +1082,10 @@ button { cursor: pointer; }
 .upload-warning strong { font-size:13px; color:#8A5A00; line-height:1.5; }
 .upload-warning small { font-size:12.5px; }
 .upload-warning-file { overflow-wrap:anywhere; }
-.upload-warning .upload-anyway { margin-top:2px; font-size:12.5px; }
+/* 兩個「仍要使用」的按鈕長一樣：一個是瀏覽器看畫質退的，一個是伺服器讀內容退的，
+   對使用者來說是同一件事，沒有理由看起來不同。 */
+.upload-warning .upload-anyway,
+.upload-warning .review-anyway { margin-top:2px; font-size:12.5px; }
 
 .upload-error {
   margin-top:6px;
