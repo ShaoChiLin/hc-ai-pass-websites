@@ -1065,7 +1065,9 @@ button { cursor: pointer; }
   overflow-wrap:anywhere;
 }
 
-/* 品質預檢沒過。用琥珀色不用紅色——這是提示，使用者仍然可以選擇上傳。 */
+/* 檢查沒過就亮橘燈，檔案不會被收下（2026-09-19 起沒有「仍要上傳」的出口）。
+   仍然用琥珀色不用紅色：紅色在這個介面代表「上傳失敗、可以再試一次」，
+   而這裡是「檔案本身要換一張」，兩件事要分得出來。 */
 .upload-item.flagged { border-color:rgba(245,166,35,.45); background:rgba(245,166,35,.06); }
 
 .upload-warning {
@@ -1082,10 +1084,9 @@ button { cursor: pointer; }
 .upload-warning strong { font-size:13px; color:#8A5A00; line-height:1.5; }
 .upload-warning small { font-size:12.5px; }
 .upload-warning-file { overflow-wrap:anywhere; }
-/* 兩個「仍要使用」的按鈕長一樣：一個是瀏覽器看畫質退的，一個是伺服器讀內容退的，
-   對使用者來說是同一件事，沒有理由看起來不同。 */
-.upload-warning .upload-anyway,
-.upload-warning .review-anyway { margin-top:2px; font-size:12.5px; }
+/* 取代原本兩個「仍要上傳／仍要使用」按鈕的那一行字。做成深一點的琥珀色粗體，
+   因為這是整段警告裡唯一告訴使用者「接下來要做什麼」的句子。 */
+.upload-warning-block { margin-top:2px; color:#8A5A00; font-weight:700; }
 
 .upload-error {
   margin-top:6px;

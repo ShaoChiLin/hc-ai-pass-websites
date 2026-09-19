@@ -395,6 +395,24 @@ const API_STORAGE_KEY = 'hc-ai-pass.apiBase';
 const DRAFT_STORAGE_KEY = 'hc-ai-pass.subsidyDraft';
 
 /**
+ * Demo 模式：每次載入都從空白開始。
+ *
+ * 展示時同一台機器會連續跑好幾輪，草稿還原會讓第二輪一進去就看到上一輪的姓名、
+ * 電話與已經跑滿的影片進度條，看起來像是流程被跳過了。所以這個旗標打開時：
+ *
+ * 1. `saveDraft()` 不寫 localStorage、`restoreDraft()` 改成把舊草稿清掉；
+ * 2. 載入與 bfcache 返回都會跑一次 `resetForm()`，把欄位、觀看秒數與進度條歸零。
+ *
+ * 第 2 點不能省。第 1 點只擋得住我們自己存的草稿，瀏覽器重新整理時**自己**也會
+ * 還原輸入框與勾選框的內容（HTML 規格的 form restoration），那一份不歸我們管，
+ * 只能在它還原完之後自己再清一次——所以 `pageshow` 那一段也要清。
+ *
+ * 要回到「使用者中途離開還能接著填」的正式行為，把這行改成 false 就好，
+ * 底下 saveDraft／restoreDraft 的原始邏輯都原封不動留著。
+ */
+const DEMO_ALWAYS_FRESH = true;
+
+/**
  * 找不到同源 API 時要連的位址。留空字串就是關掉這個行為、回到舊的「停在離線模式」。
  *
  * 這必須是 ngrok 的**固定**網址，不是每次重開都變的那種隨機字串。
@@ -596,7 +614,7 @@ function renderProgram() {
     .map((doc) => `
       <li>
         <strong>${escapeHtml(doc.label)}</strong>
-        <span class="doc-tag">${doc.required ? '必備' : `${escapeHtml(p.grants[doc.onlyFor]?.label ?? '特定身分')}適用`}</span>
+        <span class="doc-tag">${doc.required ? '必附' : `${escapeHtml(p.grants[doc.onlyFor]?.label ?? '特定身分')}必附`}</span>
         <small>${escapeHtml(doc.note)}</small>
       </li>`)
     .join('');
@@ -725,14 +743,18 @@ function gateFor(step) {
   }
 
   if (step === 5) {
-    // 缺件不擋送出。政府流程是先收件、再形式審查，缺的走補正。
+    // 2026-09-19 起缺件就擋。原本是「先收件、缺的走補正」，現在照使用者要求改成
+    // 全部必附——所以下面的 ok 直接看 missing.length，沒有例外。
+    //
+    // 注意 requiredDocuments() 已經把低收證明過濾掉了（只有申請 90% 的人看得到），
+    // 所以這裡是「畫面上看得到的每一格都要有檔案」，不是「五格都要有」。
     const missing = requiredDocuments().filter((doc) => !state.files[doc.docType]);
     return {
-      ok: true,
+      ok: missing.length === 0,
       cta: '確認申請內容',
       hint: missing.length === 0
         ? '應備文件已檢附齊全'
-        : `尚未上傳 ${missing.length} 件，仍可送出，後續將通知補正`,
+        : `尚未上傳：${missing.map((doc) => doc.label).join('、')}`,
     };
   }
 
@@ -864,7 +886,7 @@ function renderUploadList() {
         <div class="upload-item ${done ? 'ok' : ''} ${flagged || review ? 'flagged' : ''}" data-doc="${escapeHtml(doc.docType)}">
           <div class="upload-copy">
             <strong>${escapeHtml(doc.label)}</strong>
-            <span class="doc-tag">${doc.required ? '必備' : '低收／中低收適用'}</span>
+            <span class="doc-tag">${doc.required ? '必附' : '必附（低收／中低收）'}</span>
             <small>${escapeHtml(doc.note)}</small>
             ${done
               ? `<div class="upload-file">📄 ${escapeHtml(file.displayName)}　${formatBytes(file.size)}</div>`
@@ -873,8 +895,8 @@ function renderUploadList() {
               ? `<div class="upload-warning">
                    <strong>⚠️ ${escapeHtml(flagged.verdict.message)}</strong>
                    <small>${escapeHtml(flagged.verdict.hint)}</small>
-                   <small class="upload-warning-file">選到的檔案：${escapeHtml(flagged.file.name)}　${formatBytes(flagged.file.size)}</small>
-                   <button class="text-btn upload-anyway" type="button">這張沒問題，仍要上傳</button>
+                   <small class="upload-warning-file">這個檔案沒有被收下：${escapeHtml(flagged.file.name)}　${formatBytes(flagged.file.size)}</small>
+                   <small class="upload-warning-block">請重新選擇一張照片，這一格才會完成。</small>
                  </div>`
               : ''}
             ${review
@@ -882,7 +904,7 @@ function renderUploadList() {
                    <strong>⚠️ ${escapeHtml(review.message)}</strong>
                    <small>${escapeHtml(review.hint)}</small>
                    <small class="upload-warning-file">這個檔案沒有被收下：${escapeHtml(review.file.name)}　${formatBytes(review.file.size)}</small>
-                   <button class="text-btn review-anyway" type="button">我確認沒傳錯，仍要使用這張</button>
+                   <small class="upload-warning-block">請重新選擇一張照片，這一格才會完成。</small>
                  </div>`
               : ''}
             <div class="upload-error" hidden></div>
@@ -906,22 +928,8 @@ function renderUploadList() {
       if (file) uploadDocument(docType, file, item);
     });
     item.querySelector('.upload-remove')?.addEventListener('click', () => removeDocument(docType));
-    item.querySelector('.review-anyway')?.addEventListener('click', () => {
-      const rejected = state.review[docType];
-      if (!rejected) return;
-      delete state.review[docType];
-      renderUploadList();
-      const target = uploadList.querySelector(`.upload-item[data-doc="${CSS.escape(docType)}"]`);
-      sendDocument(docType, rejected.file, target, { override: true });
-    });
-    item.querySelector('.upload-anyway')?.addEventListener('click', () => {
-      const flagged = state.quality[docType];
-      if (!flagged) return;
-      delete state.quality[docType];
-      renderUploadList();
-      const target = uploadList.querySelector(`.upload-item[data-doc="${CSS.escape(docType)}"]`);
-      sendDocument(docType, flagged.file, target);
-    });
+    // 「這張沒問題，仍要上傳」與「我確認沒傳錯，仍要使用這張」兩個出口已移除，
+    // 改成沒通過就是不收（見 uploadDocument() 開頭的說明）。唯一的路是重新選一張。
   });
 }
 
@@ -953,9 +961,16 @@ async function ensureDraft(base) {
  * 使用者選了一個檔案。先擋掉一定不會成功的，再做品質預檢，最後才送出。
  *
  * 品質預檢只回答「這張圖能不能看」（太小、全黑、糊掉），回答不了
- * 「這是不是正確的文件」——那要文字辨識才知道。所以它的結果是提示而非否決：
- * 使用者按「仍要上傳」就會照送，因為誤判一定會發生，而擋掉一份合法申請
- * 比讓承辦人多看一張照片嚴重得多。
+ * 「這是不是正確的文件」——那要文字辨識才知道。
+ *
+ * **2026-09-19 改為沒通過就不收。** 原本這一層與伺服器端的 OCR 都只是提示，
+ * 各留一個「我就是要傳」的按鈕；現在兩個出口都拿掉了，判定不通過就亮橘燈、
+ * 檔案不上傳，使用者只能重新選一張。
+ *
+ * 要注意這不等於把判讀變嚴：`image-check.js` 的 fail-open 前提沒有動，
+ * 解碼失敗、瀏覽器不支援、PDF 一律回 `ok:true`，所以真正被擋下來的只有
+ * 「量得出來而且量出問題」的那些。這一點不能改——判讀不出來就放行，
+ * 否則舊手機上會變成整份申請都送不出去。
  */
 async function uploadDocument(docType, file, item) {
   showUploadError(item, '');
@@ -964,7 +979,7 @@ async function uploadDocument(docType, file, item) {
 
   const base = readApiBase();
   if (!base) {
-    showUploadError(item, '尚未連線到收件伺服器，無法上傳。可先送出，文件之後再補。');
+    showUploadError(item, '尚未連線到收件伺服器，無法上傳。所有文件都必須上傳才能送出，請先確認連線。');
     return;
   }
 
@@ -1018,7 +1033,8 @@ async function sendDocument(docType, file, item, { override = false } = {}) {
       throw new Error('上傳暫存已過期，請再上傳一次。');
     }
     // 422：伺服器讀過內容，認定這張不是這一格要的東西，檔案沒有被收下。
-    // 和其他錯誤分開處理，因為這個要連同「仍要使用這張」的退路一起顯示。
+    // 和其他錯誤分開處理，因為它要畫成橘色的 flagged 警告（含伺服器給的理由與建議），
+    // 不是紅色的上傳失敗。伺服器仍然支援 `?override=1`，但前端已經沒有按鈕會帶它。
     if (response.status === 422 && data.review) {
       state.review[docType] = { ...data.review, file };
       renderUploadList();
@@ -1132,12 +1148,14 @@ function renderReview() {
             <span>${file ? '✓' : '○'}</span>
             <div>
               <strong>${escapeHtml(doc.label)}</strong>
-              <small>${file ? `${escapeHtml(file.displayName)}　${formatBytes(file.size)}` : '尚未上傳，收件後將通知限期補正'}</small>
+              <small>${file ? `${escapeHtml(file.displayName)}　${formatBytes(file.size)}` : '尚未上傳，請回上一步補齊'}</small>
             </div>
           </li>`;
         }).join('')}
       </ul>
-      <p class="review-note">已檢附 ${attached.length} 件，尚缺 ${missing.length} 件。缺件不影響收件時間。</p>
+      <p class="review-note">${missing.length === 0
+        ? `已檢附 ${attached.length} 件，應備文件齊全。`
+        : `已檢附 ${attached.length} 件，尚缺 ${missing.length} 件。所有文件都必須上傳才能送出。`}</p>
     </div>`;
 }
 
@@ -1320,6 +1338,9 @@ function renderReceipt(data) {
  * ------------------------------------------------------------------------- */
 
 function saveDraft() {
+  // Demo 模式不留任何痕跡，見 DEMO_ALWAYS_FRESH。
+  if (DEMO_ALWAYS_FRESH) return;
+
   const draft = {
     step: state.currentStep === STEP_COUNT ? 1 : state.currentStep,
     consentPrivacy: consentPrivacy.checked,
@@ -1361,6 +1382,13 @@ function clearDraft() {
 }
 
 function restoreDraft() {
+  // Demo 模式：不還原，順手把上一輪留下來的草稿刪掉。
+  // 只 return 不刪的話，之後把 DEMO_ALWAYS_FRESH 關回 false 會突然冒出一份很舊的草稿。
+  if (DEMO_ALWAYS_FRESH) {
+    clearDraft();
+    return;
+  }
+
   let draft = null;
   try {
     draft = JSON.parse(localStorage.getItem(DRAFT_STORAGE_KEY) ?? 'null');
@@ -1721,12 +1749,21 @@ copyCaseBtn.addEventListener('click', async () => {
 
 printBtn.addEventListener('click', () => window.print());
 
-restartBtn.addEventListener('click', () => {
+/**
+ * 把整份表單清回出廠狀態。
+ *
+ * 「重新填寫」按鈕與 demo 模式的每次載入共用這一份，兩邊不能各寫各的——
+ * 漏掉任何一個欄位，症狀都是「畫面上是空的，按鈕卻說已完成」，非常難查。
+ */
+function resetForm() {
   clearDraft();
 
   [consentPrivacy, consentTerms, noDuplicate, bankSelf, mailingSame, finalConfirm].forEach((box) => {
     box.checked = box === mailingSame;
   });
+  // 三題選擇題不用另外清：security-quiz.js 覆寫了 .security-check 的 checked setter，
+  // 上面這一行會連帶把選項、對錯樣式與解說文字一起還原。直接去動 #securityQuiz 裡的
+  // radio 反而會繞過它的 render()，留下上一輪的綠框。
   securityChecks.forEach((c) => { c.checked = false; });
 
   [birthInput, nameInput, idInput, phoneInput, emailInput, residenceDetail, mailingCity,
@@ -1752,9 +1789,21 @@ restartBtn.addEventListener('click', () => {
   watchProgress.style.width = '0%';
   submitError.hidden = true;
 
-  clearFreezeFrame();
-  try { video.currentTime = 0; } catch {}
+  // 已上傳的檔案清單也要跟著歸零，否則 STEP 5 會顯示上一輪的檔名，
+  // 而那份草稿在伺服器上已經被我們自己清掉了。
+  state.files = {};
+  state.quality = {};
+  state.review = {};
+  renderUploadList();
 
+  clearFreezeFrame();
+  // 重新整理時瀏覽器會把 <video> 停在上次的秒數，連原生進度條都是滿的。
+  try { video.pause(); } catch {}
+  try { video.currentTime = 0; } catch {}
+}
+
+restartBtn.addEventListener('click', () => {
+  resetForm();
   syncFromDom();
   goToStep(1);
 });
@@ -1767,6 +1816,7 @@ renderApiStatus();
 renderDistricts();
 renderProgram();
 restoreDraft();
+if (DEMO_ALWAYS_FRESH) resetForm();
 renderUploadList();
 syncFromDom();
 updateStepper();
@@ -1777,4 +1827,14 @@ detectSameOriginApi().then(loadProgram);
 
 // 表單還原有時候發生在這支腳本跑完之後，所以 pageshow 要再同步一次。
 // 它在一般載入與上一頁返回（bfcache）都會觸發，兩種情況一起收掉。
-window.addEventListener('pageshow', syncFromDom);
+//
+// demo 模式在這裡才是真正清乾淨的那一次：pageshow 排在 load 之後，
+// 瀏覽器自己的 form restoration 與 security-quiz.js 的 setter 覆寫這時都已經做完了，
+// 上面啟動段那次 resetForm() 清不掉的東西（被還原的 radio、影片秒數）在這裡會被清掉。
+window.addEventListener('pageshow', () => {
+  if (DEMO_ALWAYS_FRESH) {
+    resetForm();
+    goToStep(1);
+  }
+  syncFromDom();
+});

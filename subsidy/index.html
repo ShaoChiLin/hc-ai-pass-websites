@@ -11,7 +11,7 @@
   <!-- ?v= 是給 GitHub Pages 用的。它對靜態檔會回 max-age=600，改版後十分鐘內回訪的人
        會拿到「新的 index.html ＋ 快取裡的舊 app.js」：畫面是新的七步流程，跑的卻是舊的
        三步程式，第一頁勾完同意事項按鈕照樣反灰。每次改這兩支檔就把日期一起改掉。 -->
-  <link rel="stylesheet" href="./styles.css?v=20260919-ocr-c" />
+  <link rel="stylesheet" href="./styles.css?v=20260919-strict-a" />
 </head>
 <body>
   <div class="app-shell">
@@ -574,13 +574,13 @@
           <div class="shield-icon">📎</div>
         </div>
 
-        <!-- 缺件不擋送出：政府流程是先收件、再形式審查，缺的走補正。
-             所以這裡的訊息是「會通知你補」，不是「不准送出」。 -->
+        <!-- 2026-09-19 改為缺件擋送出。原本是「先收件、缺的走補正」，
+             現在下面這一格的每一份文件都必填，少一件就不能進確認頁。 -->
         <div class="info-callout">
           <span>💡</span>
           <div>
-            <strong>現在缺件也可以送出</strong>
-            <p>收件後會進行形式審查，缺漏文件將另行通知限期補正。先送出可以確定收件時間。</p>
+            <strong>以下文件全部必附</strong>
+            <p>每一份都要上傳、而且要通過照片檢查，才能進入確認頁。照片太暗、模糊或解析度不足會亮橘燈，請重拍一張再上傳。</p>
           </div>
         </div>
 
@@ -588,7 +588,7 @@
 
         <div class="upload-offline" id="uploadOffline" hidden>
           <span>⚠️</span>
-          <p>尚未連線到收件伺服器，目前無法上傳檔案。你仍可以繼續送出申請，文件之後再補。</p>
+          <p>尚未連線到收件伺服器，目前無法上傳檔案。所有文件都必須上傳才能送出，請先連上收件伺服器。</p>
         </div>
       </section>
 
@@ -683,7 +683,7 @@
                 <span class="timeline-dot"></span>
                 <div>
                   <strong>形式審查</strong>
-                  <small>承辦人員檢核資格與應備文件；缺件將通知限期補正</small>
+                  <small>承辦人員檢核資格與應備文件；文件不清楚時將通知限期補正</small>
                 </div>
               </div>
               <div class="timeline-row">
@@ -733,11 +733,11 @@
   <div class="toast" id="toast"></div>
 
   <!-- 提供 app.js 的 uploadDocument() 所用的 UploadImageCheck。 -->
-  <script src="./image-check.js?v=20260919-ocr-c"></script>
-  <script src="./app.js?v=20260919-ocr-c"></script>
+  <script src="./image-check.js?v=20260919-strict-a"></script>
+  <script src="./app.js?v=20260919-strict-a"></script>
   <!-- 掛在 app.js 之後：遮蔽層只包住既有的 input，不改值，拿掉也不影響表單流程。 -->
-  <script src="./demo-mask.js?v=20260919-ocr-c"></script>
+  <script src="./demo-mask.js?v=20260919-strict-a"></script>
   <!-- 掛在 app.js 之後：只改 STEP 3 的畫面，關卡仍由 app.js 讀 .security-check 決定。 -->
-  <script src="./security-quiz.js?v=20260919-ocr-c"></script>
+  <script src="./security-quiz.js?v=20260919-strict-a"></script>
 </body>
 </html>
