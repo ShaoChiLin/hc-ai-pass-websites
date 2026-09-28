@@ -3,69 +3,129 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-  <meta name="theme-color" content="#041127">
-  <meta name="description" content="竹青，陪你探索 AI、認識資安與青年數位工具補助。點亮電腦，開始你的數位旅程。黑客松展示，非政府正式服務。">
-  <title>竹青｜你的數位冒險，從這裡開始</title>
-  <link rel="stylesheet" href="./home.css?v=20260918-menu-a">
-  <script src="./home.js?v=20260918-menu-a" defer></script>
-  <script src="./particles.js" defer></script>
+  <meta name="theme-color" content="#0b6b57">
+  <meta name="description" content="台北修繕通一站式報修系統，線上通報、附件上傳、進度追蹤與多渠道通知一次完成。">
+  <title>台北修繕通｜一站式報修系統</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="./home.css?v=20260929-taipei-a">
+  <script src="https://unpkg.com/lucide@0.468.0/dist/umd/lucide.min.js" defer></script>
+  <script src="./repair-core.js?v=20260929-taipei-a" defer></script>
+  <script src="./home.js?v=20260929-taipei-a" defer></script>
 </head>
 <body>
-  <a class="skip-link" href="./subsidy/">直接前往 AI 領航青年數位工具補助</a>
-  <header class="site-header">
-    <a class="brand" href="./" aria-label="竹青首頁"><span class="brand-icon" aria-hidden="true">竹</span><span>竹青<span class="brand-en">ZHUQING</span></span></a>
-    <div class="header-right"><span class="status"><i></i>你的數位夥伴，已上線</span><a href="./subsidy/" class="quick-link">AI 領航 <span aria-hidden="true">↗</span></a></div>
-  </header>
-  <main id="main">
-    <section class="hero" aria-labelledby="hero-title">
-      <div class="world" aria-hidden="true">
-        <img class="room" src="./assets/mascot-room.png" alt="" width="1280" height="720" fetchpriority="high">
-        <img class="typing-frame" src="./assets/mascot-typing.png" alt="" width="1280" height="720" decoding="async">
-        <span class="typing-key key-left"></span><span class="typing-key key-right"></span>
-        <div class="art-title-mask"></div><div class="room-shade"></div>
-        <span class="server-light light-one"></span><span class="server-light light-two"></span>
-      </div>
-      <canvas id="tech-particles" aria-hidden="true"></canvas>
-      <div class="hero-copy">
-        <p class="eyebrow"><span></span> HSINCHU YOUTH × DIGITAL FUTURE</p>
-        <h1 id="hero-title">竹青<span class="title-dot">.</span></h1>
-        <h2>你的數位冒險，<br>從這裡開始。</h2>
-        <p class="intro">並肩AI，展望未來</p>
-        <a class="enter-button" href="#services" id="enter" aria-controls="services" aria-expanded="false"><span class="button-cursor" aria-hidden="true">↗</span>點亮電腦，開始探索<span aria-hidden="true">→</span></a>
-        <p class="hint">也可以直接點擊電腦螢幕</p>
-      </div>
-      <button class="monitor-hit" id="monitor-hit" hidden aria-label="點擊電腦，開啟服務選單" aria-controls="services" aria-expanded="false"></button>
-      <span class="scene-caption" aria-hidden="true"><i></i> NEXT STOP: YOUR DIGITAL FUTURE</span>
-    </section>
-    <div class="portal-backdrop" id="portal-backdrop" hidden></div>
-    <section class="terminal" id="services" aria-labelledby="services-title">
-      <div class="terminal-bar"><span class="window-dots" aria-hidden="true"><i></i><i></i><i></i></span><span>竹青 / 服務選單</span><button id="close" class="close-button" aria-label="關閉選單，返回吉祥物首頁" hidden>✕</button></div>
-      <div class="terminal-content">
-        <p class="terminal-kicker">ZHUQING DIGITAL DESKTOP</p>
-        <h2 id="services-title" tabindex="-1">你好，探索者<span>_</span></h2>
-        <p class="terminal-intro">選一個入口，開啟你的數位旅程。</p>
-        <div class="service-list">
-          <a href="./subsidy/" class="service-card" id="subsidy-link">
-            <span class="service-icon" aria-hidden="true">↗</span>
-            <span class="service-copy"><span class="service-tag">01 / AI 領航</span><strong>青年數位工具補助</strong><span class="service-description">資安宣導、補助試算、申請與進度展示</span></span>
-            <span class="service-arrow" aria-hidden="true">→</span>
-          </a>
-          <a href="https://line.me/R/ti/p/%40087xfflx" class="service-card" id="linebot-link" target="_blank" rel="noopener noreferrer">
-            <span class="service-icon" aria-hidden="true">↗</span>
-            <span class="service-copy"><span class="service-tag">02 / 隨身夥伴</span><strong>加入竹青 LINE 好友</strong><span class="service-description">AI 資安健檢、進度查詢、補助提醒（另開 LINE）</span></span>
-            <span class="service-arrow" aria-hidden="true">→</span>
-          </a>
-          <a href="https://youthhsinchu.hccg.gov.tw/" class="service-card" id="youth-center-link" target="_blank" rel="noopener noreferrer">
-            <span class="service-icon" aria-hidden="true">↗</span>
-            <span class="service-copy"><span class="service-tag">03 / 青年基地</span><strong>新竹市青年發展中心</strong><span class="service-description">活動、課程與資源官方網站（另開新視窗）</span></span>
-            <span class="service-arrow" aria-hidden="true">→</span>
-          </a>
+  <a class="skip-link" href="#main-content">跳到主要內容</a>
+  <div class="app-shell">
+    <aside class="sidebar" aria-label="主要導覽">
+      <a class="brand" href="#dashboard" data-view-link="dashboard" aria-label="台北修繕通首頁">
+        <span class="brand-mark"><i data-lucide="wrench"></i></span>
+        <span><strong>台北修繕通</strong><small>FIX TAIPEI</small></span>
+      </a>
+      <nav class="side-nav">
+        <button class="nav-item active" type="button" data-view="dashboard"><i data-lucide="layout-dashboard"></i><span>報修總覽</span></button>
+        <button class="nav-item" type="button" data-view="new"><i data-lucide="circle-plus"></i><span>建立報修</span></button>
+        <button class="nav-item" type="button" data-view="track"><i data-lucide="map-pinned"></i><span>案件追蹤</span></button>
+        <button class="nav-item" type="button" data-view="help"><i data-lucide="circle-help"></i><span>報修指南</span></button>
+      </nav>
+      <div class="sidebar-support"><i data-lucide="headphones"></i><div><small>服務專線</small><a href="tel:1999">1999</a><span>週一至週五 08:00–17:00</span></div></div>
+      <p class="sidebar-foot">INNOSERVE 競賽展示系統</p>
+    </aside>
+
+    <div class="workspace">
+      <header class="topbar">
+        <button class="mobile-brand" type="button" data-view="dashboard" aria-label="回到報修總覽"><span class="brand-mark"><i data-lucide="wrench"></i></span><strong>台北修繕通</strong></button>
+        <div class="topbar-context"><span class="system-dot"></span><span>系統正常服務中</span></div>
+        <div class="topbar-actions">
+          <button class="icon-btn" id="notification-button" type="button" aria-label="通知" title="通知"><i data-lucide="bell"></i><span class="notification-count">2</span></button>
+          <button class="profile-button" type="button" aria-label="使用者選單"><span class="avatar">陳</span><span class="profile-copy"><strong>陳先生</strong><small>一般市民</small></span><i data-lucide="chevron-down"></i></button>
         </div>
-        <div class="service-notes"><span>認識資安</span><span>探索 AI</span><span>安心申請</span></div>
-      </div>
-      <div class="terminal-footer"><span><i></i>準備好，一起出發</span><span>竹青 AI 安心辦</span></div>
-    </section>
-  </main>
-  <footer class="site-footer"><span>竹青 AI 安心辦 <span class="footer-separator">/</span> 新竹青年數位探索站</span><span>黑客松展示用途 · 非政府正式服務</span></footer>
+      </header>
+
+      <main id="main-content">
+        <section class="app-view active" id="view-dashboard" data-view-panel="dashboard" aria-labelledby="dashboard-title">
+          <div class="page-heading">
+            <div><p class="eyebrow">REPAIR DESK</p><h1 id="dashboard-title">今天需要我們協助什麼？</h1><p>通報、派工、追蹤集中在同一個地方。</p></div>
+            <button class="primary-btn desktop-cta" type="button" data-view="new"><i data-lucide="plus"></i>新增報修</button>
+          </div>
+          <div class="safety-notice" role="note"><i data-lucide="triangle-alert"></i><div><strong>瓦斯外洩、火災或人身危險請立即撥打 119</strong><span>本系統受理一般設施與設備問題，不取代緊急救援。</span></div><a href="tel:119">撥打 119</a></div>
+          <div class="metric-grid" aria-label="案件摘要">
+            <article class="metric"><span class="metric-icon green"><i data-lucide="clipboard-list"></i></span><div><small>我的報修</small><strong id="metric-total">3</strong><span>全部案件</span></div></article>
+            <article class="metric"><span class="metric-icon blue"><i data-lucide="loader-circle"></i></span><div><small>處理中</small><strong id="metric-active">2</strong><span>已受理／派工</span></div></article>
+            <article class="metric"><span class="metric-icon amber"><i data-lucide="clock-3"></i></span><div><small>平均回應</small><strong>18<em>分</em></strong><span>今日服務水準</span></div></article>
+            <article class="metric"><span class="metric-icon coral"><i data-lucide="circle-check-big"></i></span><div><small>本月完成</small><strong id="metric-done">1</strong><span>已結案案件</span></div></article>
+          </div>
+          <div class="dashboard-grid">
+            <section class="content-section" aria-labelledby="active-title">
+              <div class="section-heading"><div><h2 id="active-title">進行中的案件</h2><p>最近一次更新會顯示在最上方</p></div><button class="text-btn" type="button" data-view="track">查看全部<i data-lucide="arrow-right"></i></button></div>
+              <div class="ticket-list" id="dashboard-ticket-list"></div>
+            </section>
+            <aside class="quick-report" aria-labelledby="quick-title"><div class="section-heading"><div><h2 id="quick-title">快速報修</h2><p>先選擇問題類型</p></div></div><div class="category-grid" id="quick-categories"></div></aside>
+          </div>
+        </section>
+
+        <section class="app-view" id="view-new" data-view-panel="new" aria-labelledby="new-title" hidden>
+          <div class="page-heading compact"><div><p class="eyebrow">NEW REQUEST</p><h1 id="new-title">建立報修案件</h1><p>提供清楚資訊，能讓維修人員更快準備工具與零件。</p></div><button class="secondary-btn" type="button" data-view="dashboard"><i data-lucide="x"></i>取消</button></div>
+          <div class="form-layout">
+            <section class="form-workspace" aria-label="報修表單">
+              <ol class="form-stepper" aria-label="報修進度">
+                <li class="active" data-step-indicator="1"><span>1</span><div><strong>問題類型</strong><small>選擇分類</small></div></li>
+                <li data-step-indicator="2"><span>2</span><div><strong>位置說明</strong><small>地點與狀況</small></div></li>
+                <li data-step-indicator="3"><span>3</span><div><strong>附件照片</strong><small>協助判斷</small></div></li>
+                <li data-step-indicator="4"><span>4</span><div><strong>聯絡確認</strong><small>送出案件</small></div></li>
+              </ol>
+              <form id="repair-form" novalidate>
+                <div class="form-step active" data-form-step="1">
+                  <div class="form-title"><span class="step-icon"><i data-lucide="shapes"></i></span><div><h2>遇到什麼問題？</h2><p>選擇最接近的類型，之後仍可由承辦人調整。</p></div></div>
+                  <fieldset class="category-fieldset"><legend class="sr-only">問題類型</legend><div class="category-options" id="form-categories"></div></fieldset>
+                  <fieldset class="field-group"><legend>緊急程度</legend><div class="segmented" id="priority-control"><label><input type="radio" name="priority" value="normal" checked><span><i data-lucide="calendar-clock"></i>一般</span></label><label><input type="radio" name="priority" value="urgent"><span><i data-lucide="zap"></i>急件</span></label></div><p class="field-help">急件適用於持續漏水、主要設備停擺等狀況；危及人身安全請撥 119。</p></fieldset>
+                </div>
+                <div class="form-step" data-form-step="2" hidden>
+                  <div class="form-title"><span class="step-icon"><i data-lucide="map-pin"></i></span><div><h2>問題發生在哪裡？</h2><p>地點越精確，派工越快。</p></div></div>
+                  <div class="field-row"><label class="field"><span>場域</span><select id="site" name="site" required><option value="">請選擇</option><option>台北市政大樓</option><option>區民活動中心</option><option>市立場館</option><option>公園／戶外設施</option><option>道路與公共區域</option><option>其他</option></select></label><label class="field"><span>樓層／區域</span><input id="area" name="area" type="text" maxlength="30" placeholder="例：3 樓東側、入口廣場" required></label></div>
+                  <label class="field"><span>詳細位置</span><div class="input-action"><input id="location-detail" name="locationDetail" type="text" maxlength="80" placeholder="例：茶水間洗手台下方" required><button class="icon-btn location-btn" id="location-button" type="button" title="取得目前位置" aria-label="取得目前位置"><i data-lucide="locate-fixed"></i></button></div><small id="geo-status">戶外設施可使用定位補充座標</small></label>
+                  <label class="field"><span>問題描述</span><textarea id="description" name="description" rows="5" maxlength="300" placeholder="請描述何時發現、目前狀況，以及是否持續發生…" required></textarea><small><span id="description-count">0</span> / 300，至少 10 個字</small></label>
+                </div>
+                <div class="form-step" data-form-step="3" hidden>
+                  <div class="form-title"><span class="step-icon"><i data-lucide="camera"></i></span><div><h2>上傳現場照片</h2><p>最多 3 個檔案，支援 JPG、PNG、PDF，單檔 5 MB。</p></div></div>
+                  <label class="drop-zone" id="drop-zone"><input id="attachment-input" type="file" accept="image/jpeg,image/png,application/pdf" multiple hidden><span class="drop-icon"><i data-lucide="image-up"></i></span><strong>拖曳檔案到這裡，或點擊選擇</strong><small>建議包含全景與故障細節，請避免拍入無關人員臉部。</small></label>
+                  <div class="attachment-list" id="attachment-list" aria-live="polite"></div>
+                  <p class="inline-note"><i data-lucide="info"></i>沒有照片也可以送出，但可能需要承辦人再次聯絡確認。</p>
+                </div>
+                <div class="form-step" data-form-step="4" hidden>
+                  <div class="form-title"><span class="step-icon"><i data-lucide="contact"></i></span><div><h2>留下聯絡方式</h2><p>僅用於確認本次報修與通知處理進度。</p></div></div>
+                  <div class="field-row"><label class="field"><span>聯絡人姓名</span><input id="contact-name" name="contactName" type="text" maxlength="40" placeholder="請輸入姓名" autocomplete="name" required></label><label class="field"><span>手機號碼</span><input id="contact-phone" name="contactPhone" type="tel" inputmode="numeric" maxlength="12" placeholder="0912 345 678" autocomplete="tel" required></label></div>
+                  <fieldset class="field-group"><legend>希望接收通知的方式</legend><div class="check-options"><label><input type="checkbox" name="notify" value="line" checked><span><i data-lucide="message-circle"></i>LINE</span></label><label><input type="checkbox" name="notify" value="email" checked><span><i data-lucide="mail"></i>Email</span></label></div></fieldset>
+                  <label class="field email-field"><span>Email</span><input id="contact-email" name="contactEmail" type="email" placeholder="name@example.com" autocomplete="email"></label>
+                  <div class="review-box" id="report-review"></div>
+                  <label class="consent"><input id="consent" type="checkbox" required><span>我確認以上資料正確，並同意系統為本次報修保存聯絡資料與附件。</span></label>
+                </div>
+                <div class="form-message" id="form-message" role="alert" hidden></div>
+                <div class="form-actions"><button class="secondary-btn" id="previous-step" type="button" hidden><i data-lucide="arrow-left"></i>上一步</button><button class="primary-btn" id="next-step" type="button">下一步<i data-lucide="arrow-right"></i></button></div>
+              </form>
+            </section>
+            <aside class="process-guide"><h2>受理流程</h2><ol><li class="active"><span><i data-lucide="send"></i></span><div><strong>線上通報</strong><small>立即取得案件編號</small></div></li><li><span><i data-lucide="clipboard-check"></i></span><div><strong>分流受理</strong><small>預計 30 分鐘內確認</small></div></li><li><span><i data-lucide="hard-hat"></i></span><div><strong>派工處理</strong><small>依類型與急迫度排程</small></div></li><li><span><i data-lucide="badge-check"></i></span><div><strong>完工回報</strong><small>LINE／Email 同步通知</small></div></li></ol><div class="guide-note"><i data-lucide="shield-check"></i><div><strong>資料安全</strong><p>附件僅供承辦與維修人員查看，不會公開顯示。</p></div></div></aside>
+          </div>
+        </section>
+
+        <section class="app-view" id="view-track" data-view-panel="track" aria-labelledby="track-title" hidden>
+          <div class="page-heading compact"><div><p class="eyebrow">CASE TRACKING</p><h1 id="track-title">案件進度追蹤</h1><p>輸入案件編號，查看目前承辦與最新處理紀錄。</p></div></div>
+          <form class="tracking-search" id="tracking-form"><label><span class="sr-only">案件編號</span><i data-lucide="search"></i><input id="tracking-input" type="search" placeholder="輸入案件編號，例如 RPR-20260929-0142" autocomplete="off"></label><button class="primary-btn" type="submit">查詢進度</button></form>
+          <div class="track-empty" id="track-empty"><i data-lucide="folder-search-2"></i><h2>輸入案件編號開始查詢</h2><p>送出報修後，案件編號會同時顯示在完成頁與通知訊息中。</p></div>
+          <div class="track-result" id="track-result" hidden></div>
+        </section>
+
+        <section class="app-view" id="view-help" data-view-panel="help" aria-labelledby="help-title" hidden>
+          <div class="page-heading compact"><div><p class="eyebrow">HELP CENTER</p><h1 id="help-title">報修指南</h1><p>先確認受理範圍，能減少轉派與等待時間。</p></div></div>
+          <div class="help-layout"><section class="help-section"><h2>我們可以處理</h2><div class="help-category-list" id="help-categories"></div></section><section class="faq-section"><h2>常見問題</h2><details open><summary>送出後多久會有人回覆？<i data-lucide="chevron-down"></i></summary><p>一般案件預計 30 分鐘內確認受理，急件會優先通知值班人員。實際完工時間依問題類型與零件需求而異。</p></details><details><summary>沒有照片也可以報修嗎？<i data-lucide="chevron-down"></i></summary><p>可以。若現場狀況無法判斷，承辦人可能透過您選擇的通知方式進一步確認。</p></details><details><summary>送出後可以補充資訊嗎？<i data-lucide="chevron-down"></i></summary><p>請準備案件編號並撥打 1999，或在案件通知訊息中回覆補充內容。</p></details><details><summary>哪些狀況不能使用線上報修？<i data-lucide="chevron-down"></i></summary><p>火災、瓦斯外洩、觸電風險或其他危及生命安全的事件，請立即撤離並撥打 119。</p></details></section></div>
+        </section>
+      </main>
+    </div>
+  </div>
+
+  <nav class="bottom-nav" aria-label="手機導覽"><button class="active" type="button" data-view="dashboard"><i data-lucide="layout-dashboard"></i><span>總覽</span></button><button type="button" data-view="new"><i data-lucide="circle-plus"></i><span>報修</span></button><button type="button" data-view="track"><i data-lucide="map-pinned"></i><span>追蹤</span></button><button type="button" data-view="help"><i data-lucide="circle-help"></i><span>指南</span></button></nav>
+
+  <dialog class="success-dialog" id="success-dialog"><button class="dialog-close icon-btn" type="button" aria-label="關閉" title="關閉"><i data-lucide="x"></i></button><span class="success-icon"><i data-lucide="check"></i></span><p class="eyebrow">REQUEST RECEIVED</p><h2>報修案件已建立</h2><p>案件已寫入資料庫，後續進度會依您選擇的方式更新。</p><div class="case-number"><small>案件編號</small><strong id="success-case-number"></strong><button class="icon-btn" id="copy-case" type="button" title="複製案件編號" aria-label="複製案件編號"><i data-lucide="copy"></i></button></div><a class="line-bind-action" id="line-bind-action" href="#" target="_blank" rel="noopener" hidden><i data-lucide="message-circle"></i>綁定 LINE 案件通知</a><div class="dialog-actions"><button class="secondary-btn" id="view-case" type="button">查看案件</button><button class="primary-btn" id="new-case" type="button">再報修一件</button></div></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
 </body>
 </html>
